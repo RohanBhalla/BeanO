@@ -1,0 +1,13 @@
+scrapy
+beautifulsoup4
+lxml
+requests
+langchain
+openai                # for OpenAI API
+pydantic
+transformers          # for local LLM models including Qwen
+torch                 # for transformers
+accelerate            # for efficient model loading
+sentencepiece         # for Qwen tokenization
+bitsandbytes          # for 4-bit and 8-bit quantization (optional)
+pathlib
