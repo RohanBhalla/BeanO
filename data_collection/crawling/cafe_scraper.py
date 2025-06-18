@@ -3,38 +3,35 @@ import logging
 from datetime import datetime
 from typing import Optional, Dict, Any
 from pathlib import Path
+import re
+from urllib.parse import urlparse
 
 try:
     from .web_crawler import WebCrawler, create_coffee_crawler
-    from .llm_processor import LLMProcessor, LLMConfig
-    from .models import ScrapedData
 except ImportError:
     from web_crawler import WebCrawler, create_coffee_crawler
-    from llm_processor import LLMProcessor, LLMConfig
-    from models import ScrapedData
 
 logger = logging.getLogger(__name__)
 
 class CafeScraper:
     """
     Main orchestrator for scraping cafe websites
-    Combines web crawling with LLM processing to extract structured data
+    Saves raw HTML files from each crawled page
     """
     
-    def __init__(self, llm_config: Optional[LLMConfig] = None):
+    def __init__(self):
         self.crawler = create_coffee_crawler()
-        self.llm_processor = LLMProcessor(llm_config)
         
-    def scrape_cafe_website(self, url: str, output_file: Optional[str] = None) -> ScrapedData:
+    def scrape_cafe_website(self, url: str, output_dir: Optional[str] = None) -> Dict[str, Any]:
         """
-        Complete pipeline to scrape a cafe website
+        Complete pipeline to scrape a cafe website and save HTML files
         
         Args:
             url: Starting URL of the cafe website
-            output_file: Optional file path to save results as JSON
+            output_dir: Optional directory path to save HTML files
             
         Returns:
-            ScrapedData object with all extracted information
+            Dictionary with summary of scraping results
         """
         logger.info(f"Starting complete scrape of cafe website: {url}")
         
@@ -45,25 +42,35 @@ class CafeScraper:
             
             if not crawl_result['pages']:
                 logger.error(f"No pages found during crawl of {url}")
-                return ScrapedData(base_url=url, timestamp=datetime.now().isoformat())
+                return {
+                    'base_url': url,
+                    'timestamp': datetime.now().isoformat(),
+                    'pages_saved': 0,
+                    'total_pages': 0
+                }
             
             logger.info(f"Crawled {len(crawl_result['pages'])} pages")
             
-            # Step 2: Process with LLM
-            logger.info("Step 2: Processing content with LLM...")
-            scraped_data = self.llm_processor.process_crawled_data(crawl_result)
-            scraped_data.timestamp = datetime.now().isoformat()
+            # Step 2: Save HTML files
+            if output_dir:
+                saved_count = self.save_html_files(crawl_result, output_dir)
+            else:
+                saved_count = 0
+                logger.info("No output directory specified, skipping file save")
             
-            # Step 3: Save results if requested
-            if output_file:
-                self.save_results(scraped_data, output_file)
+            # Create summary
+            result = {
+                'base_url': url,
+                'timestamp': datetime.now().isoformat(),
+                'pages_saved': saved_count,
+                'total_pages': len(crawl_result['pages']),
+                'crawled_urls': crawl_result['visited_urls'],
+                'all_links_found': crawl_result['all_links']
+            }
             
-            # Log summary
-            bean_count = len(scraped_data.coffee_beans)
-            menu_count = len(scraped_data.menu.items) if scraped_data.menu else 0
-            logger.info(f"Scraping completed! Found {bean_count} coffee beans and {menu_count} menu items")
+            logger.info(f"Scraping completed! Saved {saved_count} HTML files from {len(crawl_result['pages'])} pages")
             
-            return scraped_data
+            return result
             
         except Exception as e:
             logger.error(f"Error during scraping: {e}")
@@ -71,125 +78,134 @@ class CafeScraper:
         finally:
             self.crawler.close()
     
-    def save_results(self, scraped_data: ScrapedData, output_file: str):
-        """Save scraped data to JSON file"""
+    def save_html_files(self, crawl_result: Dict, output_dir: str) -> int:
+        """Save HTML content from each page to separate files"""
         try:
-            output_path = Path(output_file)
-            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=True)
             
-            # Convert to dict for JSON serialization
-            data_dict = scraped_data.dict()
+            saved_count = 0
             
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(data_dict, f, indent=2, ensure_ascii=False)
+            for i, page in enumerate(crawl_result['pages']):
+                if 'html_content' not in page or not page['html_content']:
+                    logger.warning(f"No HTML content found for page: {page.get('url', 'unknown')}")
+                    continue
+                
+                # Create a safe filename from the URL
+                filename = self._create_safe_filename(page['url'], i)
+                file_path = output_path / f"{filename}.html"
+                
+                # Save HTML content
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(page['html_content'])
+                
+                logger.info(f"Saved HTML file: {file_path}")
+                saved_count += 1
             
-            logger.info(f"Results saved to: {output_path}")
+            # Also save a summary JSON file
+            summary_file = output_path / "scraping_summary.json"
+            summary_data = {
+                'timestamp': datetime.now().isoformat(),
+                'base_url': crawl_result['start_url'],
+                'base_domain': crawl_result['base_domain'],
+                'total_pages': crawl_result['total_pages'],
+                'visited_urls': crawl_result['visited_urls'],
+                'all_links': crawl_result['all_links'],
+                'saved_files': saved_count
+            }
+            
+            with open(summary_file, 'w', encoding='utf-8') as f:
+                json.dump(summary_data, f, indent=2, ensure_ascii=False)
+            
+            logger.info(f"Summary saved to: {summary_file}")
+            
+            return saved_count
             
         except Exception as e:
-            logger.error(f"Error saving results: {e}")
+            logger.error(f"Error saving HTML files: {e}")
+            return 0
     
-    def load_results(self, input_file: str) -> ScrapedData:
-        """Load previously scraped data from JSON file"""
+    def _create_safe_filename(self, url: str, index: int) -> str:
+        """Create a safe filename from URL"""
         try:
-            with open(input_file, 'r', encoding='utf-8') as f:
-                data_dict = json.load(f)
+            parsed = urlparse(url)
             
-            return ScrapedData(**data_dict)
+            # Start with domain
+            domain = parsed.netloc.replace('www.', '')
+            
+            # Add path components
+            path_parts = [part for part in parsed.path.split('/') if part]
+            
+            if path_parts:
+                filename_parts = [domain] + path_parts
+                filename = '_'.join(filename_parts)
+            else:
+                filename = f"{domain}_home"
+            
+            # Clean the filename
+            filename = re.sub(r'[^\w\-_.]', '_', filename)
+            filename = re.sub(r'_+', '_', filename)
+            filename = filename.strip('_')
+            
+            # Add index to ensure uniqueness
+            filename = f"{index:03d}_{filename}"
+            
+            # Limit length
+            if len(filename) > 200:
+                filename = filename[:200]
+            
+            return filename
             
         except Exception as e:
-            logger.error(f"Error loading results: {e}")
+            logger.warning(f"Error creating filename for {url}: {e}")
+            return f"{index:03d}_page"
+    
+    def load_summary(self, input_dir: str) -> Dict[str, Any]:
+        """Load scraping summary from directory"""
+        try:
+            summary_file = Path(input_dir) / "scraping_summary.json"
+            with open(summary_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+                
+        except Exception as e:
+            logger.error(f"Error loading summary: {e}")
             raise
     
-    def get_summary(self, scraped_data: ScrapedData) -> Dict[str, Any]:
-        """Generate a summary of scraped data"""
-        summary = {
-            "cafe_name": scraped_data.cafe_name,
-            "base_url": scraped_data.base_url,
-            "timestamp": scraped_data.timestamp,
-            "total_pages_crawled": len(scraped_data.all_urls_crawled),
-            "coffee_beans": {
-                "total_count": len(scraped_data.coffee_beans),
-                "beans_with_specialty_info": len([b for b in scraped_data.coffee_beans if b.specialty_info]),
-                "unique_regions": list(set(b.basic_info.region for b in scraped_data.coffee_beans if b.basic_info.region)),
-                "roast_levels": list(set(b.basic_info.roast_level for b in scraped_data.coffee_beans if b.basic_info.roast_level))
-            },
-            "menu": {
-                "total_items": len(scraped_data.menu.items) if scraped_data.menu else 0,
-                "categories": list(set(item.category for item in scraped_data.menu.items if item.category)) if scraped_data.menu else []
-            }
-        }
-        
-        return summary
-    
-    def print_summary(self, scraped_data: ScrapedData):
-        """Print a human-readable summary of scraped data"""
-        summary = self.get_summary(scraped_data)
-        
+    def print_summary(self, result: Dict[str, Any]):
+        """Print a human-readable summary of scraping results"""
         print(f"\n{'='*60}")
         print(f"CAFE SCRAPING SUMMARY")
         print(f"{'='*60}")
-        print(f"Cafe: {summary['cafe_name'] or 'Unknown'}")
-        print(f"URL: {summary['base_url']}")
-        print(f"Scraped at: {summary['timestamp']}")
-        print(f"Pages crawled: {summary['total_pages_crawled']}")
+        print(f"Website: {result['base_url']}")
+        print(f"Scraped at: {result['timestamp']}")
+        print(f"Total pages crawled: {result['total_pages']}")
+        print(f"HTML files saved: {result['pages_saved']}")
         
-        print(f"\n{'Coffee Beans:'}")
-        print(f"- Total beans found: {summary['coffee_beans']['total_count']}")
-        print(f"- Beans with specialty info: {summary['coffee_beans']['beans_with_specialty_info']}")
-        if summary['coffee_beans']['unique_regions']:
-            print(f"- Regions: {', '.join(summary['coffee_beans']['unique_regions'])}")
-        if summary['coffee_beans']['roast_levels']:
-            print(f"- Roast levels: {', '.join(summary['coffee_beans']['roast_levels'])}")
+        if result.get('crawled_urls'):
+            print(f"\nCrawled URLs ({len(result['crawled_urls'])}):")
+            for i, url in enumerate(result['crawled_urls'][:10], 1):
+                print(f"  {i}. {url}")
+            if len(result['crawled_urls']) > 10:
+                print(f"  ... and {len(result['crawled_urls']) - 10} more")
         
-        print(f"\n{'Menu:'}")
-        print(f"- Total menu items: {summary['menu']['total_items']}")
-        if summary['menu']['categories']:
-            print(f"- Categories: {', '.join(summary['menu']['categories'])}")
-        
-        if scraped_data.coffee_beans:
-            print(f"\n{'Sample Coffee Beans:'}")
-            for i, bean in enumerate(scraped_data.coffee_beans[:3], 1):
-                print(f"{i}. {bean.basic_info.name or 'Unnamed'}")
-                if bean.basic_info.price:
-                    print(f"   Price: {bean.basic_info.price}")
-                if bean.basic_info.region:
-                    print(f"   Region: {bean.basic_info.region}")
-                if bean.basic_info.flavor_notes:
-                    print(f"   Flavor Notes: {', '.join(bean.basic_info.flavor_notes)}")
-        
-        if scraped_data.menu and scraped_data.menu.items:
-            print(f"\n{'Sample Menu Items:'}")
-            for i, item in enumerate(scraped_data.menu.items[:5], 1):
-                print(f"{i}. {item.name}")
-                if item.price:
-                    print(f"   Price: {item.price}")
-                if item.description:
-                    print(f"   Description: {item.description}")
+        if result.get('all_links_found'):
+            print(f"\nTotal links found: {len(result['all_links_found'])}")
 
 
-def quick_scrape(url: str, output_file: Optional[str] = None, api_key: Optional[str] = None) -> ScrapedData:
+def quick_scrape(url: str, output_dir: Optional[str] = None) -> Dict[str, Any]:
     """
-    Quick utility function to scrape a cafe website
+    Quick utility function to scrape a cafe website and save HTML files
     
     Args:
         url: Cafe website URL
-        output_file: Optional file to save results
-        api_key: Optional OpenAI API key for better LLM processing
+        output_dir: Directory to save HTML files
         
     Returns:
-        ScrapedData object
+        Dictionary with scraping results
     """
-    # Configure LLM
-    llm_config = LLMConfig()
-    if api_key:
-        llm_config.api_key = api_key
-        llm_config.model_type = "openai"
-    else:
-        llm_config.model_type = "mock"  # Use mock for testing
-    
     # Create scraper and run
-    scraper = CafeScraper(llm_config)
-    result = scraper.scrape_cafe_website(url, output_file)
+    scraper = CafeScraper()
+    result = scraper.scrape_cafe_website(url, output_dir)
     scraper.print_summary(result)
     
     return result
@@ -199,11 +215,11 @@ if __name__ == "__main__":
     import sys
     
     if len(sys.argv) < 2:
-        print("Usage: python3 cafe_scraper.py <url> [output_file] [api_key]")
+        print("Usage: python3 cafe_scraper.py <url> [output_dir]")
+        print("Example: python3 cafe_scraper.py https://example-cafe.com ./scraped_html")
         sys.exit(1)
     
     url = sys.argv[1]
-    output_file = sys.argv[2] if len(sys.argv) > 2 else None
-    api_key = sys.argv[3] if len(sys.argv) > 3 else None
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else f"./scraped_html_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     
-    quick_scrape(url, output_file, api_key) 
+    quick_scrape(url, output_dir) 
