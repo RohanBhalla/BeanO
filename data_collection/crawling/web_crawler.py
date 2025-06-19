@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CrawlConfig:
     """Configuration for web crawler"""
-    max_pages: int = 50
+    max_pages: int = 100
     delay_between_requests: float = 1.0
     max_workers: int = 5
     timeout: int = 30
@@ -22,12 +22,14 @@ class CrawlConfig:
     follow_external_links: bool = False
     allowed_extensions: Set[str] = None
     blocked_extensions: Set[str] = None
+    extract_js_links: bool = True
+    verbose_logging: bool = False
     
     def __post_init__(self):
         if self.allowed_extensions is None:
-            self.allowed_extensions = {'.html', '.htm', '.php', '.asp', '.aspx', ''}
+            self.allowed_extensions = {'.html', '.htm', '.php', '.asp', '.aspx', '.jsp', ''}
         if self.blocked_extensions is None:
-            self.blocked_extensions = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.css', '.js', '.xml', '.zip', '.doc', '.docx'}
+            self.blocked_extensions = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.css', '.js', '.xml', '.zip', '.doc', '.docx', '.svg', '.ico'}
 
 class WebCrawler:
     def __init__(self, config: CrawlConfig = None):
@@ -48,11 +50,15 @@ class WebCrawler:
             
             # Check if it's a valid HTTP/HTTPS URL
             if parsed.scheme not in ['http', 'https']:
+                if self.config.verbose_logging:
+                    logger.debug(f"Rejected URL (invalid scheme): {url}")
                 return False
                 
             # Check domain restriction
             if not self.config.follow_external_links:
                 if parsed.netloc != base_domain:
+                    if self.config.verbose_logging:
+                        logger.debug(f"Rejected URL (external domain): {url}")
                     return False
             
             # Check file extensions
@@ -61,12 +67,16 @@ class WebCrawler:
             # Check blocked extensions
             for ext in self.config.blocked_extensions:
                 if path.endswith(ext):
+                    if self.config.verbose_logging:
+                        logger.debug(f"Rejected URL (blocked extension {ext}): {url}")
                     return False
                     
             # If allowed extensions specified, check them
             if self.config.allowed_extensions:
                 has_allowed_ext = any(path.endswith(ext) for ext in self.config.allowed_extensions)
                 if not has_allowed_ext and '.' in path.split('/')[-1]:
+                    if self.config.verbose_logging:
+                        logger.debug(f"Rejected URL (not in allowed extensions): {url}")
                     return False
                     
             return True
@@ -76,11 +86,15 @@ class WebCrawler:
             return False
     
     def _extract_links(self, soup: BeautifulSoup, base_url: str) -> List[str]:
-        """Extract all links from a page"""
+        """Extract all links from a page using multiple methods"""
         links = []
         base_domain = urlparse(base_url).netloc
         
-        # Find all anchor tags with href
+        if self.config.verbose_logging:
+            logger.debug(f"Extracting links from: {base_url}")
+        
+        # Method 1: Standard anchor tags with href
+        anchor_links = []
         for link in soup.find_all('a', href=True):
             href = link['href'].strip()
             if not href or href.startswith('#') or href.startswith('mailto:') or href.startswith('tel:'):
@@ -90,9 +104,122 @@ class WebCrawler:
             absolute_url = urljoin(base_url, href)
             
             if self._is_valid_url(absolute_url, base_domain):
-                links.append(absolute_url)
+                anchor_links.append(absolute_url)
+        
+        if self.config.verbose_logging:
+            logger.debug(f"Found {len(anchor_links)} anchor links")
+        links.extend(anchor_links)
+        
+        # Method 2: Area tags (image maps)
+        area_links = []
+        for area in soup.find_all('area', href=True):
+            href = area['href'].strip()
+            if not href or href.startswith('#') or href.startswith('mailto:') or href.startswith('tel:'):
+                continue
                 
-        return links
+            absolute_url = urljoin(base_url, href)
+            if self._is_valid_url(absolute_url, base_domain):
+                area_links.append(absolute_url)
+        
+        if area_links and self.config.verbose_logging:
+            logger.debug(f"Found {len(area_links)} area links")
+        links.extend(area_links)
+        
+        # Method 3: Form actions
+        form_links = []
+        for form in soup.find_all('form', action=True):
+            action = form['action'].strip()
+            if not action or action.startswith('#') or action.startswith('mailto:'):
+                continue
+                
+            absolute_url = urljoin(base_url, action)
+            if self._is_valid_url(absolute_url, base_domain):
+                form_links.append(absolute_url)
+        
+        if form_links and self.config.verbose_logging:
+            logger.debug(f"Found {len(form_links)} form action links")
+        links.extend(form_links)
+        
+        # Method 4: Data attributes that might contain URLs
+        data_links = []
+        for element in soup.find_all(attrs={"data-href": True}):
+            href = element['data-href'].strip()
+            if href and not href.startswith('#'):
+                absolute_url = urljoin(base_url, href)
+                if self._is_valid_url(absolute_url, base_domain):
+                    data_links.append(absolute_url)
+        
+        for element in soup.find_all(attrs={"data-url": True}):
+            href = element['data-url'].strip()
+            if href and not href.startswith('#'):
+                absolute_url = urljoin(base_url, href)
+                if self._is_valid_url(absolute_url, base_domain):
+                    data_links.append(absolute_url)
+        
+        if data_links and self.config.verbose_logging:
+            logger.debug(f"Found {len(data_links)} data attribute links")
+        links.extend(data_links)
+        
+        # Method 5: JavaScript links (basic extraction)
+        if self.config.extract_js_links:
+            js_links = self._extract_js_links(soup, base_url, base_domain)
+            if js_links and self.config.verbose_logging:
+                logger.debug(f"Found {len(js_links)} JavaScript links")
+            links.extend(js_links)
+        
+        # Remove duplicates while preserving order
+        unique_links = []
+        seen = set()
+        for link in links:
+            if link not in seen:
+                unique_links.append(link)
+                seen.add(link)
+        
+        if self.config.verbose_logging:
+            logger.debug(f"Total unique links found: {len(unique_links)}")
+        
+        return unique_links
+    
+    def _extract_js_links(self, soup: BeautifulSoup, base_url: str, base_domain: str) -> List[str]:
+        """Extract URLs from JavaScript code (basic patterns)"""
+        js_links = []
+        
+        # Look for URLs in script tags
+        for script in soup.find_all('script'):
+            if script.string:
+                # Common patterns for URLs in JavaScript
+                url_patterns = [
+                    r'["\']([^"\']*\.(?:html|htm|php|asp|aspx|jsp)[^"\']*)["\']',
+                    r'["\']([^"\']*\/[^"\']*)["\']',
+                    r'window\.location\s*=\s*["\']([^"\']+)["\']',
+                    r'location\.href\s*=\s*["\']([^"\']+)["\']',
+                    r'href\s*:\s*["\']([^"\']+)["\']',
+                ]
+                
+                for pattern in url_patterns:
+                    matches = re.findall(pattern, script.string, re.IGNORECASE)
+                    for match in matches:
+                        if match and not match.startswith(('javascript:', 'mailto:', 'tel:', '#')):
+                            try:
+                                absolute_url = urljoin(base_url, match)
+                                if self._is_valid_url(absolute_url, base_domain):
+                                    js_links.append(absolute_url)
+                            except Exception:
+                                continue
+        
+        # Look for onclick handlers with URLs
+        for element in soup.find_all(attrs={"onclick": True}):
+            onclick = element['onclick']
+            url_matches = re.findall(r'["\']([^"\']+\.(?:html|htm|php|asp|aspx|jsp)[^"\']*)["\']', onclick)
+            for match in url_matches:
+                try:
+                    absolute_url = urljoin(base_url, match)
+                    if self._is_valid_url(absolute_url, base_domain):
+                        js_links.append(absolute_url)
+                except Exception:
+                    continue
+        
+        return js_links
     
     def _clean_html_content(self, soup: BeautifulSoup) -> str:
         """Clean and extract meaningful text content from HTML"""
@@ -173,6 +300,8 @@ class WebCrawler:
             current_batch = list(urls_to_visit)[:self.config.max_workers]
             urls_to_visit -= set(current_batch)
             
+            logger.info(f"Processing batch of {len(current_batch)} URLs. Queue size: {len(urls_to_visit)}, Visited: {len(visited_urls)}")
+            
             # Process batch concurrently
             with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
                 future_to_url = {
@@ -190,10 +319,16 @@ class WebCrawler:
                             all_pages.append(page_data)
                             
                             # Add new links to crawl queue
+                            new_links = 0
                             for link in page_data['links']:
                                 all_links.add(link)
                                 if link not in visited_urls and len(visited_urls) < self.config.max_pages:
-                                    urls_to_visit.add(link)
+                                    if link not in urls_to_visit:
+                                        urls_to_visit.add(link)
+                                        new_links += 1
+                            
+                            if self.config.verbose_logging:
+                                logger.debug(f"Page {url} contributed {new_links} new links to queue")
                                     
                     except Exception as e:
                         logger.error(f"Error processing result for {url}: {e}")
@@ -233,12 +368,14 @@ class WebCrawler:
         self.session.close()
 
 
-def create_coffee_crawler() -> WebCrawler:
+def create_coffee_crawler(max_pages: int = 100, verbose: bool = False) -> WebCrawler:
     """Create a crawler optimized for coffee shop websites"""
     config = CrawlConfig(
-        max_pages=30,  # Reasonable limit for most cafe sites
-        delay_between_requests=1.5,  # Be respectful
-        max_workers=3,  # Conservative parallelism
-        follow_external_links=False,  # Stay on the main site
+        max_pages=max_pages,
+        delay_between_requests=1.5,
+        max_workers=3,
+        follow_external_links=False,
+        extract_js_links=True,
+        verbose_logging=verbose,
     )
     return WebCrawler(config) 
