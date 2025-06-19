@@ -1,0 +1,987 @@
+{
+  "input_directory": "/Users/ronballer/Documents/GitHub/BeanO-Project/data_collection/crawling/scraped_data/sey_cafe_scraped_set",
+  "processed_at": "2025-06-19T15:39:16.676781",
+  "files_processed": 31,
+  "total_beans_found": 83,
+  "results": [
+    {
+      "source_file": "021_seycoffee.com_collections_archived-coffees.html",
+      "processed_at": "2025-06-19T15:38:38.613602",
+      "coffee_beans": [
+        {
+          "name": "Wilson Alba SIERRA MORENA, NEW SEASON (1ST HARVEST) Pink Bourbon - Washed",
+          "producer": "Wilson Alba",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "Pink Bourbon"
+          ]
+        },
+        {
+          "name": "Hamasho SEY SPECIAL PREPARATION ETHIOPIAN LANDRACE - DRY-FERMENTED WASHED",
+          "producer": "Hamasho",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Hamasho SEY SPECIAL PREPARATION ETHIOPIAN LANDRACE - DRY-FERMENTED HONEY",
+          "producer": "Hamasho",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Mbature Family KAMAVINDI GESHA - WASHED",
+          "producer": "Mbature Family",
+          "region": "Kenya",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "GESHA"
+          ]
+        },
+        {
+          "name": "José Gallardo NUGUO - PLANO PLOT GESHA - WASHED",
+          "producer": "José Gallardo",
+          "region": "Panama",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "GESHA"
+          ]
+        },
+        {
+          "name": "Hamasho SEY SPECIAL PREPARATION ETHIOPIAN LANDRACE - TRADITIONAL HONEY",
+          "producer": "Hamasho",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Bensa Segera ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Bensa Segera",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Hacienda La Esmeralda MARIO ARRIBA GESHA - WASHED",
+          "producer": "Hacienda La Esmeralda",
+          "region": "Panama",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "GESHA"
+          ]
+        },
+        {
+          "name": "Ticuna EL ESQUILINO FIELD BLEND - LACTO-FERMENTED & WASHED",
+          "producer": "Ticuna",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "FIELD BLEND"
+          ]
+        },
+        {
+          "name": "Ibonia Estate AA SEPARATION FIELD BLEND - WASHED",
+          "producer": "Ibonia Estate",
+          "region": "Kenya",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "FIELD BLEND"
+          ]
+        },
+        {
+          "name": "Bombe ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Bombe",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Kubi ETHIOPIAN LANDRACE - HONEY",
+          "producer": "Kubi",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Daniel Caro Lopez EL TAMBO CHIROSO - WASHED",
+          "producer": "Daniel Caro Lopez",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CHIROSO"
+          ]
+        },
+        {
+          "name": "Jhon Alexander Bermudez FINCA LA ESTRELLA - LATE HARVEST CHIROSO - WASHED",
+          "producer": "Jhon Alexander Bermudez",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CHIROSO"
+          ]
+        },
+        {
+          "name": "Buncho ETHIOPIAN LANDRACE - HONEY",
+          "producer": "Buncho",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Abelardo Medina EL GIRASOL PINK BOURBON - WASHED",
+          "producer": "Abelardo Medina",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "PINK BOURBON"
+          ]
+        },
+        {
+          "name": "David Berrio LA CASITA - LATE HARVEST CHIROSO - WASHED",
+          "producer": "David Berrio",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CHIROSO"
+          ]
+        },
+        {
+          "name": "Keramo ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Keramo",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Nadeia Guerra x Lost Origin JARAMILLO GESHA - WASHED",
+          "producer": "Nadeia Guerra x Lost Origin",
+          "region": "Panama",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "GESHA"
+          ]
+        },
+        {
+          "name": "Marua AA SEPARATION FIELD BLEND - WASHED",
+          "producer": "Marua",
+          "region": "Kenya",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "FIELD BLEND"
+          ]
+        },
+        {
+          "name": "Luis Arnulfo Caro HOYO RICO CHIROSO - WASHED",
+          "producer": "Luis Arnulfo Caro",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CHIROSO"
+          ]
+        },
+        {
+          "name": "Jose Arcadio Caro EL CEDRAL - LATE HARVEST CHIROSO - WASHED",
+          "producer": "Jose Arcadio Caro",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CHIROSO"
+          ]
+        },
+        {
+          "name": "Worka ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Worka",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Rumudamo ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Rumudamo",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Roque Acosta EL MIRADOR PINK BOURBON - WASHED",
+          "producer": "Roque Acosta",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "PINK BOURBON"
+          ]
+        },
+        {
+          "name": "Bekele Belaychow HORA GANET 74158 - HONEY",
+          "producer": "Bekele Belaychow",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "74158"
+          ]
+        },
+        {
+          "name": "Diego Hoyos LA FORTUNA - LATE HARVEST PINK BOURBON - WASHED",
+          "producer": "Diego Hoyos",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "PINK BOURBON"
+          ]
+        },
+        {
+          "name": "Alejandro Renjifo REINA DE SABA GESHA - WASHED",
+          "producer": "Alejandro Renjifo",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "GESHA"
+          ]
+        },
+        {
+          "name": "Kubi ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Kubi",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Servio Botina EL CEDRO - LATE LATE HARVEST Pink Bourbon - Washed",
+          "producer": "Servio Botina",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "Pink Bourbon"
+          ]
+        },
+        {
+          "name": "Gathaithi AA SEPARATION FIELD BLEND - WASHED",
+          "producer": "Gathaithi",
+          "region": "Kenya",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "FIELD BLEND"
+          ]
+        },
+        {
+          "name": "Arles Jair Galindez EL GUAYABO PINK BOURBON - WASHED",
+          "producer": "Arles Jair Galindez",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "PINK BOURBON"
+          ]
+        },
+        {
+          "name": "Banko Chelchele ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Banko Chelchele",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Jose & Pepe Jijon FINCA SAN PEDRO - MIDDLE HARVEST MEJORADO - WASHED",
+          "producer": "Jose & Pepe Jijon",
+          "region": "Ecuador",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "MEJORADO"
+          ]
+        },
+        {
+          "name": "José Martinez EL CASINO - LATE LATE HARVEST PINK BOURBON - WASHED",
+          "producer": "José Martinez",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "PINK BOURBON"
+          ]
+        },
+        {
+          "name": "Danche ETHIOPIAN LANDRACE - HONEY",
+          "producer": "Danche",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Halo Hartume ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Halo Hartume",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Ricardo Silva FINCA EL SUSPIRO PINK BOURBON - WASHED",
+          "producer": "Ricardo Silva",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "PINK BOURBON"
+          ]
+        },
+        {
+          "name": "Danche ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Danche",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Valentim & Edneia Fiorese CATUCAI 785 - HONEY",
+          "producer": "Valentim & Edneia Fiorese",
+          "region": "Brazil",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CATUCAI"
+          ]
+        },
+        {
+          "name": "Chelchele ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Chelchele",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Gildardo Lopez EL CALAMAR - LATE HARVEST PINK BOURBON - WASHED",
+          "producer": "Gildardo Lopez",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "PINK BOURBON"
+          ]
+        },
+        {
+          "name": "Worka Chelbessa LOT #10 ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Worka Chelbessa",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Banko Gotiti ETHIOPIAN LANDRACE - WASHED",
+          "producer": "Banko Gotiti",
+          "region": "Ethiopia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ETHIOPIAN LANDRACE"
+          ]
+        },
+        {
+          "name": "Marcos Nali & Luciana Aparecida CANTINHO DO SERTÃO CATUAI - WASHED",
+          "producer": "Marcos Nali & Luciana Aparecida",
+          "region": "Brazil",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CATUAI"
+          ]
+        },
+        {
+          "name": "Fabiano Nali SÍTIO NALI CATUCAÍ 785 - WASHED",
+          "producer": "Fabiano Nali",
+          "region": "Brazil",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "CATUCAÍ"
+          ]
+        },
+        {
+          "name": "Edivaldo Cunha SÍTIO ALTO RIBEIRÃO ARARA - WASHED",
+          "producer": "Edivaldo Cunha",
+          "region": "Brazil",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "ARARA"
+          ]
+        },
+        {
+          "name": "Bukeye FIELD BLEND - WASHED",
+          "producer": "Bukeye",
+          "region": "Burundi",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "FIELD BLEND"
+          ]
+        }
+      ],
+      "beans_found": 48
+    },
+    {
+      "source_file": "024_seycoffee.com_collections_archived-coffees.html",
+      "processed_at": "2025-06-19T15:38:40.168044",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "008_seycoffee.com_collections_coffee_products_2025-kedida-gubata-ethiopia.html",
+      "processed_at": "2025-06-19T15:38:41.484924",
+      "coffee_beans": [
+        {
+          "name": "Kedida Gubata ETHIOPIAN LANDRACE - WASHED",
+          "weight": "250g",
+          "price": "Rs. 2,300.00",
+          "producer": "SNAP",
+          "region": "Kochere",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "honeydew",
+            "nectarine",
+            "lime"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Kedida Gubata ETHIOPIAN LANDRACE - WASHED",
+          "weight": "2lb",
+          "price": "Rs. 6,200.00",
+          "producer": "SNAP",
+          "region": "Kochere",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "honeydew",
+            "nectarine",
+            "lime"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Kedida Gubata ETHIOPIAN LANDRACE - WASHED",
+          "weight": "5lb",
+          "price": "Rs. 15,400.00",
+          "producer": "SNAP",
+          "region": "Kochere",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "honeydew",
+            "nectarine",
+            "lime"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 3
+    },
+    {
+      "source_file": "011_seycoffee.com_collections_coffee_products_2025-ernedis-rodriguez-el-paraiso-lot-2-colombia.html",
+      "processed_at": "2025-06-19T15:38:44.967621",
+      "coffee_beans": [
+        {
+          "name": "Ernedis Rodriguez EL PARAISO - LOT #2 CATURRA - WASHED Colombia",
+          "weight": "250g",
+          "price": "Rs. 2,200.00",
+          "producer": "Ernedis Rodriguez",
+          "region": "Gigante, Huila",
+          "flavor_notes": [
+            "red fruit",
+            "yellow plum",
+            "Key lime"
+          ]
+        },
+        {
+          "name": "Ernedis Rodriguez EL PARAISO - LOT #2 CATURRA - WASHED Colombia",
+          "weight": "2lb",
+          "price": "Rs. 6,100.00",
+          "producer": "Ernedis Rodriguez",
+          "region": "Gigante, Huila",
+          "flavor_notes": [
+            "red fruit",
+            "yellow plum",
+            "Key lime"
+          ]
+        },
+        {
+          "name": "Ernedis Rodriguez EL PARAISO - LOT #2 CATURRA - WASHED Colombia",
+          "weight": "5lb",
+          "price": "Rs. 15,100.00",
+          "producer": "Ernedis Rodriguez",
+          "region": "Gigante, Huila",
+          "flavor_notes": [
+            "red fruit",
+            "yellow plum",
+            "Key lime"
+          ]
+        }
+      ],
+      "beans_found": 3
+    },
+    {
+      "source_file": "013_seycoffee.com_collections_archived-coffees_products_2025-kayu-aa-separation-kenya.html",
+      "processed_at": "2025-06-19T15:38:45.986772",
+      "coffee_beans": [
+        {
+          "name": "Kayu AA SEPARATION FIELD BLEND - WASHED Kenya",
+          "producer": "Kayu Coffee Factory",
+          "region": "Murang'a County, Kenya",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "blackcurrant",
+            "hibiscus",
+            "Key lime"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 1
+    },
+    {
+      "source_file": "028_seycoffee.com_collections_archived-coffees_products_gaaki-aa.html",
+      "processed_at": "2025-06-19T15:38:47.372193",
+      "coffee_beans": [
+        {
+          "name": "Gaaki AA SL28, SL34 - Washed Kenya",
+          "producer": "Gaaki Cooperative",
+          "region": "Nyeri, Kenya",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "melon",
+            "white grape"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 1
+    },
+    {
+      "source_file": "020_seycoffee.com_collections_archived-coffees_products_2025-armando-hurtado-los-pinos-peru.html",
+      "processed_at": "2025-06-19T15:38:48.297544",
+      "coffee_beans": [
+        {
+          "name": "Armando Hurtado LOS PINOS SL9 - WASHED Peru",
+          "producer": "Armando Hurtado",
+          "region": "Pacaypata, Cusco",
+          "flavor_notes": [
+            "vibrant layered fruit",
+            "sparkling acidity",
+            "pronounced florality"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 1
+    },
+    {
+      "source_file": "019_seycoffee.com_collections_archived-coffees.html",
+      "processed_at": "2025-06-19T15:38:52.381223",
+      "coffee_beans": [
+        {
+          "name": "Jesus Antonio Saavedra El Placer Red Caturra",
+          "producer": "Jesus Antonio Saavedra",
+          "region": "Colombia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Angel Capa Carrion Angamaza Field Blend",
+          "producer": "Angel Capa Carrion",
+          "region": "Ecuador",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Isaias Fernandez La Fincona Field Blend",
+          "producer": "Isaias Fernandez",
+          "region": "Honduras",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Jose Canacue Finca El Mirador V.",
+          "producer": "Jose Canacue",
+          "region": "Colombia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Gesha Village Oma Plot Gesha 1931",
+          "producer": "Gesha Village",
+          "region": "Ethiopia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Mario Moreno Parainema Parainema",
+          "producer": "Mario Moreno",
+          "region": "Honduras",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Halo Ethiopian Landrace",
+          "region": "Ethiopia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Gaaki AA SL28, SL34",
+          "region": "Kenya",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Kota Ethiopian Landrace",
+          "region": "Ethiopia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Bitalina Lopez Finca Bitalina Pacas & Bourbon",
+          "producer": "Bitalina Lopez",
+          "region": "Honduras",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Gakuyu-ini AB SL34, SL28",
+          "region": "Kenya",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Mario Moreno Mas Morenos Field Blend",
+          "producer": "Mario Moreno",
+          "region": "Honduras",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Feku Jebril Ugo Begne Forest Ethiopian Landrace",
+          "producer": "Feku Jebril",
+          "region": "Ethiopia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Mario Moreno PIEDRAS AMARILLAS 100% Pacas",
+          "producer": "Mario Moreno",
+          "region": "Honduras",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "La Plata Field Blend",
+          "region": "Colombia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Kiunyu AB SL34, Ruiru 11",
+          "region": "Kenya",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "Harbebona Ethiopian Landrace",
+          "region": "Ethiopia",
+          "flavor_notes": [
+            "Washed"
+          ]
+        },
+        {
+          "name": "The Lamastus Family Elida Estate Green Tip Gesha",
+          "producer": "The Lamastus Family",
+          "region": "Panama",
+          "flavor_notes": [
+            "Washed"
+          ]
+        }
+      ],
+      "beans_found": 18
+    },
+    {
+      "source_file": "027_seycoffee.com_collections_archived-coffees_products_angamaza.html",
+      "processed_at": "2025-06-19T15:38:53.309091",
+      "coffee_beans": [
+        {
+          "name": "Angel Capa Carrion Angamaza Field Blend - Washed Ecuador",
+          "producer": "Angel Capa Carrion",
+          "region": "Conganama, Loja, Ecuador",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "fruit-forward",
+            "well balanced acidity",
+            "excellent depth of sweetness"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 1
+    },
+    {
+      "source_file": "009_seycoffee.com_collections_coffee_products_2025-servio-botina-el-cedro-end-of-season-colombia.html",
+      "processed_at": "2025-06-19T15:38:55.124009",
+      "coffee_beans": [
+        {
+          "name": "Servio Botina EL CEDRO - END OF SEASON Pink Bourbon - Washed Colombia",
+          "weight": "250g",
+          "price": "Rs. 2,300.00",
+          "producer": "Servio Botina",
+          "region": "Purutal, San Agustín, Huila",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "wild strawberry",
+            "crisp botanicals",
+            "mandarin"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Servio Botina EL CEDRO - END OF SEASON Pink Bourbon - Washed Colombia",
+          "weight": "2lb",
+          "price": "Rs. 6,200.00",
+          "producer": "Servio Botina",
+          "region": "Purutal, San Agustín, Huila",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "wild strawberry",
+            "crisp botanicals",
+            "mandarin"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Servio Botina EL CEDRO - END OF SEASON Pink Bourbon - Washed Colombia",
+          "weight": "5lb",
+          "price": "Rs. 15,500.00",
+          "producer": "Servio Botina",
+          "region": "Purutal, San Agustín, Huila",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "wild strawberry",
+            "crisp botanicals",
+            "mandarin"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 3
+    },
+    {
+      "source_file": "022_seycoffee.com_collections_archived-coffees_products_2024-hamasho-sey-dry-washed-ethiopia.html",
+      "processed_at": "2025-06-19T15:38:56.780286",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "015_seycoffee.com_collections_archived-coffees_products_2025-ericson-luque-nueva-esperanza-peru.html",
+      "processed_at": "2025-06-19T15:38:57.704510",
+      "coffee_beans": [
+        {
+          "name": "NUEVA ESPERANZA SL9 - WASHED",
+          "producer": "Ericson Luque",
+          "region": "Amaybamba, Cusco, Peru",
+          "flavor_notes": [
+            "orange blossom",
+            "lychee",
+            "red berries"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 1
+    },
+    {
+      "source_file": "010_seycoffee.com_collections_coffee_products_huila-decaffeinated.html",
+      "processed_at": "2025-06-19T15:38:59.333823",
+      "coffee_beans": [
+        {
+          "name": "Huila DECAFFEINATED FIELD BLEND - WASHED Colombia",
+          "weight": "250g",
+          "price": "Rs. 2,100.00",
+          "region": "Huila",
+          "flavor_notes": [
+            "jam",
+            "dark chocolate",
+            "lemon zest"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Huila DECAFFEINATED FIELD BLEND - WASHED Colombia",
+          "weight": "2lb",
+          "price": "Rs. 5,600.00",
+          "region": "Huila",
+          "flavor_notes": [
+            "jam",
+            "dark chocolate",
+            "lemon zest"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Huila DECAFFEINATED FIELD BLEND - WASHED Colombia",
+          "weight": "5lb",
+          "price": "Rs. 13,900.00",
+          "region": "Huila",
+          "flavor_notes": [
+            "jam",
+            "dark chocolate",
+            "lemon zest"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 3
+    },
+    {
+      "source_file": "029_seycoffee.com_collections_archived-coffees_products_2024-jose-pepe-jijon-finca-san-pedro-ecuador.html",
+      "processed_at": "2025-06-19T15:39:01.540902",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "003_seycoffee.com_account_login.html",
+      "processed_at": "2025-06-19T15:39:02.224987",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "004_seycoffee.com_pages_about.html",
+      "processed_at": "2025-06-19T15:39:03.178621",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "014_seycoffee.com_collections_archived-coffees_products_2025-ricardo-silva-finca-el-suspiro-new-season-1st-harvest-colombia.html",
+      "processed_at": "2025-06-19T15:39:05.068299",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "025_seycoffee.com_collections_archived-coffees_products_2024-kibingo-burundi.html",
+      "processed_at": "2025-06-19T15:39:05.400078",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "002_seycoffee.com_products_2025-danche-ethiopia.html",
+      "processed_at": "2025-06-19T15:39:06.743291",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "030_seycoffee.com_collections_archived-coffees_products_2024-daniel-caro-lopez-el-tambo-colombia.html",
+      "processed_at": "2025-06-19T15:39:07.427545",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "017_seycoffee.com_collections_archived-coffees_products_2025-luis-salas-el-paraiso-peru.html",
+      "processed_at": "2025-06-19T15:39:08.374022",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "007_seycoffee.com_collections_coffee.html",
+      "processed_at": "2025-06-19T15:39:09.025711",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "005_seycoffee.com_products_roasted-coffee-recurring.html",
+      "processed_at": "2025-06-19T15:39:10.038943",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "016_seycoffee.com_collections_archived-coffees_products_2025-oliva-quinayas-villa-sofia-colombia.html",
+      "processed_at": "2025-06-19T15:39:10.753780",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "001_seycoffee.com_pages_wholesale.html",
+      "processed_at": "2025-06-19T15:39:11.725729",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "000_seycoffee.com_home.html",
+      "processed_at": "2025-06-19T15:39:12.398070",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "012_seycoffee.com_collections_archived-coffees.html",
+      "processed_at": "2025-06-19T15:39:13.405976",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "026_seycoffee.com_collections_archived-coffees_products_2024-disnely-maria-gutierez-la-bonanza-colombia.html",
+      "processed_at": "2025-06-19T15:39:14.082603",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "006_seycoffee.com_cart.html",
+      "processed_at": "2025-06-19T15:39:15.096018",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "023_seycoffee.com_collections_archived-coffees_products_2024-bombe-ethiopia.html",
+      "processed_at": "2025-06-19T15:39:15.667859",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "018_seycoffee.com_collections_archived-coffees_products_2025-victor-alfonso-bonilla-la-chorrera-colombia.html",
+      "processed_at": "2025-06-19T15:39:16.674573",
+      "coffee_beans": [],
+      "beans_found": 0
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "source_file": "009_seycoffee.com_collections_coffee_products_2025-servio-botina-el-cedro-end-of-season-colombia.html",
+  "processed_at": "2025-06-19T15:38:55.124009",
+  "coffee_beans": [
+    {
+      "name": "Servio Botina EL CEDRO - END OF SEASON Pink Bourbon - Washed Colombia",
+      "weight": "250g",
+      "price": "Rs. 2,300.00",
+      "producer": "Servio Botina",
+      "region": "Purutal, San Agustín, Huila",
+      "roast_level": "MEDIUM",
+      "flavor_notes": [
+        "wild strawberry",
+        "crisp botanicals",
+        "mandarin"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    },
+    {
+      "name": "Servio Botina EL CEDRO - END OF SEASON Pink Bourbon - Washed Colombia",
+      "weight": "2lb",
+      "price": "Rs. 6,200.00",
+      "producer": "Servio Botina",
+      "region": "Purutal, San Agustín, Huila",
+      "roast_level": "MEDIUM",
+      "flavor_notes": [
+        "wild strawberry",
+        "crisp botanicals",
+        "mandarin"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    },
+    {
+      "name": "Servio Botina EL CEDRO - END OF SEASON Pink Bourbon - Washed Colombia",
+      "weight": "5lb",
+      "price": "Rs. 15,500.00",
+      "producer": "Servio Botina",
+      "region": "Purutal, San Agustín, Huila",
+      "roast_level": "MEDIUM",
+      "flavor_notes": [
+        "wild strawberry",
+        "crisp botanicals",
+        "mandarin"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    }
+  ],
+  "beans_found": 3
+}

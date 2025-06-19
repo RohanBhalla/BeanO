@@ -22,7 +22,7 @@ Usage:
     result = scraper.scrape_cafe_website("https://example-cafe.com")
 """
 
-from .models import (
+from .data_models.models import (
     BeanInfo, SpecialtyBeanInfo, CoffeeBean,
     MenuItem, CafeMenu, ScrapedData,
     GrindType, RoastLevel, ProcessType, BeanType, BrewType
@@ -30,7 +30,7 @@ from .models import (
 
 from .web_crawler import WebCrawler, CrawlConfig, create_coffee_crawler
 
-from .llm_processor import LLMProcessor, LLMConfig
+from ..processing.llm_processor import LLMProcessor, LLMConfig
 
 from .cafe_scraper import CafeScraper, quick_scrape
 

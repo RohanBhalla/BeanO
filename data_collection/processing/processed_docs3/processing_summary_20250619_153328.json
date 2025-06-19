@@ -1,0 +1,28 @@
+{
+  "input_directory": "/Users/ronballer/Documents/GitHub/BeanO-Project/data_collection/crawling/scraped_data/test_folder",
+  "processed_at": "2025-06-19T15:33:28.955638",
+  "files_processed": 1,
+  "total_beans_found": 1,
+  "results": [
+    {
+      "source_file": "Coffee _ Toro Specialty Colombian Arabica Specialty Coffee _ Devoción.html",
+      "processed_at": "2025-06-19T15:33:28.954432",
+      "coffee_beans": [
+        {
+          "name": "TORO",
+          "weight": "12 oz",
+          "price": "$ 23.75",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "Cocoa",
+            "Vanilla",
+            "Cherry",
+            "Almond"
+          ]
+        }
+      ],
+      "beans_found": 1
+    }
+  ]
+}

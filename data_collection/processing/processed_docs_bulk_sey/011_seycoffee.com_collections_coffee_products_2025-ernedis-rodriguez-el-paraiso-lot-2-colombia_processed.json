@@ -1,0 +1,43 @@
+{
+  "source_file": "011_seycoffee.com_collections_coffee_products_2025-ernedis-rodriguez-el-paraiso-lot-2-colombia.html",
+  "processed_at": "2025-06-19T15:38:44.967621",
+  "coffee_beans": [
+    {
+      "name": "Ernedis Rodriguez EL PARAISO - LOT #2 CATURRA - WASHED Colombia",
+      "weight": "250g",
+      "price": "Rs. 2,200.00",
+      "producer": "Ernedis Rodriguez",
+      "region": "Gigante, Huila",
+      "flavor_notes": [
+        "red fruit",
+        "yellow plum",
+        "Key lime"
+      ]
+    },
+    {
+      "name": "Ernedis Rodriguez EL PARAISO - LOT #2 CATURRA - WASHED Colombia",
+      "weight": "2lb",
+      "price": "Rs. 6,100.00",
+      "producer": "Ernedis Rodriguez",
+      "region": "Gigante, Huila",
+      "flavor_notes": [
+        "red fruit",
+        "yellow plum",
+        "Key lime"
+      ]
+    },
+    {
+      "name": "Ernedis Rodriguez EL PARAISO - LOT #2 CATURRA - WASHED Colombia",
+      "weight": "5lb",
+      "price": "Rs. 15,100.00",
+      "producer": "Ernedis Rodriguez",
+      "region": "Gigante, Huila",
+      "flavor_notes": [
+        "red fruit",
+        "yellow plum",
+        "Key lime"
+      ]
+    }
+  ],
+  "beans_found": 3
+}

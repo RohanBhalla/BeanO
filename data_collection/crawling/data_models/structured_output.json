@@ -1,0 +1,57 @@
+{
+  "type": "array",
+  "description": "A listq of general coffee bean information object",
+  "items": {
+    "type": "object",
+    "description": "Level 1: General bean information",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Name of the coffee bean"
+      },
+      "weight": {
+        "type": "string",
+        "description": "Weight of the package (e.g., '12oz', '340g')"
+      },
+      "price": {
+        "type": "string",
+        "description": "Price of the coffee"
+      },
+      "producer": {
+        "type": "string",
+        "description": "Bean proprietor/producer"
+      },
+      "region": {
+        "type": "string",
+        "description": "Coffee growing region (country/area)"
+      },
+      "roast_level": {
+        "type": "string",
+        "description": "Roast level",
+        "enum": [
+          "LIGHT",
+          "MEDIUM",
+          "DARK",
+          "MEDIUM_DARK"
+        ]
+      },
+      "flavor_notes": {
+        "type": "array",
+        "description": "Flavor notes/tasting notes",
+        "items": {
+          "type": "string"
+        }
+      },
+      "grind_type": {
+        "type": "string",
+        "description": "Grind type (whole/ground)",
+        "enum": [
+          "WHOLE_BEAN",
+          "ESPRESSO",
+          "FILTER",
+          "FRENCH_PRESS"
+        ]
+      }
+    }
+  }
+}

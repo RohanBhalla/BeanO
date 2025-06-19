@@ -1,0 +1,18 @@
+{
+  "source_file": "028_seycoffee.com_collections_archived-coffees_products_gaaki-aa.html",
+  "processed_at": "2025-06-19T15:38:47.372193",
+  "coffee_beans": [
+    {
+      "name": "Gaaki AA SL28, SL34 - Washed Kenya",
+      "producer": "Gaaki Cooperative",
+      "region": "Nyeri, Kenya",
+      "roast_level": "MEDIUM",
+      "flavor_notes": [
+        "melon",
+        "white grape"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    }
+  ],
+  "beans_found": 1
+}

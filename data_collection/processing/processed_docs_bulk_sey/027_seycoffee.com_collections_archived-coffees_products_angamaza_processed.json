@@ -1,0 +1,19 @@
+{
+  "source_file": "027_seycoffee.com_collections_archived-coffees_products_angamaza.html",
+  "processed_at": "2025-06-19T15:38:53.309091",
+  "coffee_beans": [
+    {
+      "name": "Angel Capa Carrion Angamaza Field Blend - Washed Ecuador",
+      "producer": "Angel Capa Carrion",
+      "region": "Conganama, Loja, Ecuador",
+      "roast_level": "MEDIUM",
+      "flavor_notes": [
+        "fruit-forward",
+        "well balanced acidity",
+        "excellent depth of sweetness"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    }
+  ],
+  "beans_found": 1
+}
