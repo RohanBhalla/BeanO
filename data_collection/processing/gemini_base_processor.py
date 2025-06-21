@@ -91,6 +91,39 @@ Website content:
 """
         return prompt
     
+    def create_menu_prompt(self, text_content: str) -> str:
+        """Create the prompt for Gemini to extract menu items from cafe content"""
+        prompt = f"""
+Please analyze the following text extracted from a coffee shop/cafe website and extract ALL menu items available.
+
+Look for menu items including:
+- Coffee drinks (espresso, latte, cappuccino, americano, etc.)
+- Tea beverages (hot tea, iced tea, specialty teas, etc.)
+- Cold beverages (iced coffee, cold brew, smoothies, juices, etc.)
+- Hot beverages (hot chocolate, chai, etc.)
+- Food items (pastries, sandwiches, salads, soups, etc.)
+- Desserts (cakes, cookies, muffins, etc.)
+- Breakfast items
+- Lunch items
+- Snacks
+
+For each menu item, extract:
+- Item name
+- Price (if available)
+- Description (if available)
+- Category/type of item
+- Size options (if available)
+- Any special ingredients or dietary notes
+
+Only extract actual menu items that customers can order. Ignore general website content, navigation, headers, footers, promotional text, etc.
+
+If no menu items are found, return an empty array.
+
+Website content:
+{text_content}
+"""
+        return prompt
+    
     def process_with_gemini(self, text_content: str) -> List[Dict[str, Any]]:
         """Process text content with Gemini and return structured data"""
         try:
@@ -182,6 +215,122 @@ Website content:
             logger.error(f"Error processing with Gemini: {e}")
             return []
     
+    def process_menu_with_gemini(self, text_content: str) -> List[Dict[str, Any]]:
+        """Process text content with Gemini to extract menu items and return structured data"""
+        try:
+            prompt = self.create_menu_prompt(text_content)
+            
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            
+            generate_content_config = types.GenerateContentConfig(
+                temperature=0.25,
+                thinking_config=types.ThinkingConfig(
+                    thinking_budget=0,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.ARRAY,
+                    description="A list of cafe menu items",
+                    items=genai.types.Schema(
+                        type=genai.types.Type.OBJECT,
+                        description="Menu item information",
+                        properties={
+                            "name": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Name of the menu item",
+                            ),
+                            "price": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Price of the item (if available)",
+                            ),
+                            "description": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Description of the menu item (if available)",
+                            ),
+                            "category": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Category of the menu item",
+                                enum=["COFFEE", "TEA", "COLD_BEVERAGE", "HOT_BEVERAGE", "FOOD", "DESSERT", "BREAKFAST", "LUNCH", "SNACK", "OTHER"],
+                            ),
+                            "size_options": genai.types.Schema(
+                                type=genai.types.Type.ARRAY,
+                                description="Available size options (if any)",
+                                items=genai.types.Schema(
+                                    type=genai.types.Type.STRING,
+                                ),
+                            ),
+                            "dietary_notes": genai.types.Schema(
+                                type=genai.types.Type.ARRAY,
+                                description="Dietary information or special ingredients",
+                                items=genai.types.Schema(
+                                    type=genai.types.Type.STRING,
+                                ),
+                            ),
+                        },
+                        required=["name", "category"],
+                    ),
+                ),
+            )
+            
+            # Collect the full response
+            response_text = ""
+            for chunk in self.client.models.generate_content_stream(
+                model=self.model,
+                contents=contents,
+                config=generate_content_config,
+            ):
+                response_text += chunk.text
+            
+            # Parse JSON response
+            try:
+                result = json.loads(response_text)
+                return result if isinstance(result, list) else []
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON response: {e}")
+                logger.error(f"Response text: {response_text}")
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error processing menu with Gemini: {e}")
+            return []
+    
+    def extract_menu_items_from_html(self, html_content: str) -> List[Dict[str, Any]]:
+        """
+        Extract menu items from HTML content using Gemini
+        
+        Args:
+            html_content: Raw HTML content from a cafe website
+            
+        Returns:
+            List of dictionaries containing menu item information
+        """
+        logger.info("Extracting menu items from HTML content")
+        
+        try:
+            # Extract text from HTML
+            text_content = self.extract_text_from_html(html_content)
+            
+            if not text_content.strip():
+                logger.warning("No text content extracted from HTML")
+                return []
+            
+            # Process with Gemini to extract menu items
+            menu_items = self.process_menu_with_gemini(text_content)
+            
+            logger.info(f"Extracted {len(menu_items)} menu items from HTML content")
+            return menu_items
+            
+        except Exception as e:
+            logger.error(f"Error extracting menu items from HTML: {e}")
+            return []
+
     def process_html_file(self, html_file_path: Path) -> Dict[str, Any]:
         """Process a single HTML file and return results"""
         logger.info(f"Processing file: {html_file_path.name}")
@@ -335,6 +484,42 @@ Website content:
         logger.info(f"Test result saved to: {test_file}")
         
         return result
+    
+    def test_menu_sample(self) -> Dict[str, Any]:
+        """Test the menu extraction with a sample HTML content"""
+        html_path = "/Users/ronballer/Documents/GitHub/BeanO-Project/data_collection/crawling/scraped_data/test_folder/Best coffee to buy online. Coffee Subscriptions. Strong and Freshly Roasted. Locally owned coffee company.html"
+        
+        logger.info("Testing menu extraction with HTML file...")
+        
+        try:
+            with open(html_path, 'r', encoding='utf-8') as f:
+                sample_html = f.read()
+        except Exception as e:
+            logger.error(f"Error reading HTML file: {e}")
+            return {
+                'test_type': 'menu_sample',
+                'processed_at': datetime.now().isoformat(),
+                'error': str(e)
+            }
+        # Extract menu items using the new function
+        menu_items = self.extract_menu_items_from_html(sample_html)
+        
+        result = {
+            'test_type': 'menu_sample',
+            'processed_at': datetime.now().isoformat(),
+            'menu_items': menu_items,
+            'items_found': len(menu_items)
+        }
+        
+        # Save test result
+        test_file = self.output_dir / f"test_menu_sample_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with open(test_file, 'w', encoding='utf-8') as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"Test complete! Found {len(menu_items)} menu items")
+        logger.info(f"Test result saved to: {test_file}")
+        
+        return result
 
 
 def main():
@@ -347,8 +532,11 @@ Examples:
   # Process all HTML files in a directory
   python gemini_base_processor.py --directory ./scraped_html_20240101_120000
   
-  # Test with sample data
+  # Test with sample coffee bean data
   python gemini_base_processor.py --test-sample
+  
+  # Test menu extraction with sample data
+  python gemini_base_processor.py --test-menu
   
   # Set custom API key
   python gemini_base_processor.py --directory ./scraped_html --api-key YOUR_API_KEY
@@ -365,6 +553,11 @@ Examples:
         '--test-sample', '-t',
         action='store_true',
         help='Test the processor with sample HTML content'
+    )
+    group.add_argument(
+        '--test-menu', '-m',
+        action='store_true',
+        help='Test the menu extraction with sample HTML content'
     )
     
     parser.add_argument(
@@ -395,6 +588,23 @@ Examples:
                 print(f"   Roast: {bean.get('roast_level', 'N/A')}")
                 print(f"   Flavors: {', '.join(bean.get('flavor_notes', []))}")
                 print(f"   Grind: {bean.get('grind_type', 'N/A')}")
+        
+        elif args.test_menu:
+            # Test menu extraction
+            result = processor.test_menu_sample()
+            print(f"\n{'='*60}")
+            print("MENU TEST RESULTS")
+            print(f"{'='*60}")
+            print(f"Menu items found: {result['items_found']}")
+            for i, item in enumerate(result['menu_items'], 1):
+                print(f"\n{i}. {item.get('name', 'Unknown')}")
+                print(f"   Category: {item.get('category', 'N/A')}")
+                print(f"   Price: {item.get('price', 'N/A')}")
+                print(f"   Description: {item.get('description', 'N/A')}")
+                if item.get('size_options'):
+                    print(f"   Sizes: {', '.join(item.get('size_options', []))}")
+                if item.get('dietary_notes'):
+                    print(f"   Dietary Notes: {', '.join(item.get('dietary_notes', []))}")
         
         else:
             # Process directory
