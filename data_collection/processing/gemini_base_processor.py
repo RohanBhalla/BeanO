@@ -12,7 +12,7 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 from bs4 import BeautifulSoup
-
+from dotenv import load_dotenv
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -27,6 +27,8 @@ class GeminiHTMLProcessor:
         Args:
             api_key: Gemini API key (defaults to environment variable)
         """
+        # Load environment variables from .env file
+        load_dotenv()
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise ValueError("Gemini API key not found. Set GEMINI_API_KEY environment variable or pass api_key parameter.")
