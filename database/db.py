@@ -1,13 +1,13 @@
 from sqlalchemy import (
-    create_engine, Column, Integer, String, Float, Date, DateTime,
-    Enum, Text, ARRAY, ForeignKey, func
+    create_engine, Column, Integer, Float, Date, DateTime,
+    Text, ARRAY, ForeignKey, func, JSON
 )
+from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
+from sqlalchemy.orm import relationship, declarative_base
 from dotenv import load_dotenv
 import os
-from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
-from sqlalchemy.orm import relationship, declarative_base, sessionmaker
 
-# — replace with your Supabase DATABASE_URL
+# Replace with your Supabase DATABASE_URL
 try:
     load_dotenv()
     DATABASE_URL = os.getenv("DATABASE_URL")
@@ -17,33 +17,41 @@ except Exception as e:
 
 Base = declarative_base()
 
-# 1️⃣ ENUM definitions
+# ENUM definitions
 brewing_method = PG_ENUM(
     'drip_filter', 'espresso', 'pour_over', 'french_press', 'cold_brew', 'other',
-    name='brewing_method', create_type=False
+    name='brewing_method', create_type=True
 )
 roast_level = PG_ENUM(
     'light', 'medium', 'dark', 'no_preference',
-    name='roast_level', create_type=False
+    name='roast_level', create_type=True
 )
 consumption_frequency = PG_ENUM(
     'daily', 'several_times_a_week', 'once_a_week', 'less_than_once_a_week',
-    name='consumption_frequency', create_type=False
+    name='consumption_frequency', create_type=True
 )
 flavor_or_caffeine_pref = PG_ENUM(
     'flavor', 'caffeine', 'either',
-    name='flavor_or_caffeine_pref', create_type=False
+    name='flavor_or_caffeine_pref', create_type=True
 )
 flavor_note = PG_ENUM(
     'chocolate_nutty', 'fruity_bright', 'caramel_sweet', 'earthy_spicy',
-    name='flavor_note', create_type=False
+    name='flavor_note', create_type=True
 )
-grind_type = PG_ENUM('whole', 'ground', name='grind_type', create_type=False)
-bean_process = PG_ENUM('natural', 'washed', 'honey', 'other', name='bean_process', create_type=False)
-bean_type = PG_ENUM('arabica', 'robusta', 'liberica', 'excelsa', name='bean_type', create_type=False)
-budget_range = PG_ENUM('low', 'medium', 'high', name='budget_range', create_type=False)
+grind_type = PG_ENUM('whole', 'ground', name='grind_type', create_type=True)
+bean_process = PG_ENUM('natural', 'washed', 'honey', 'other', name='bean_process', create_type=True)
+bean_type = PG_ENUM('arabica', 'robusta', 'liberica', 'excelsa', name='bean_type', create_type=True)
+budget_range = PG_ENUM('low', 'medium', 'high', name='budget_range', create_type=True)
+drink_type = PG_ENUM(
+    'espresso', 'cold_brew', 'latte', 'cappuccino', 'americano', 'filter', 'other',
+    name='drink_type', create_type=True
+)
+interaction_type = PG_ENUM(
+    'view', 'click', 'add_to_favorites', 'purchase', 'other',
+    name='interaction_type', create_type=True
+)
 
-# 2️⃣ Models
+# Models
 class User(Base):
     __tablename__ = 'users'
     id            = Column(Integer, primary_key=True)
@@ -55,10 +63,11 @@ class User(Base):
     budget_range  = Column(budget_range)
     created_at    = Column(DateTime(timezone=True), server_default=func.now())
 
-    preferences    = relationship('UserPreferences', back_populates='user', uselist=False)
-    flavor_prefs   = relationship('UserFlavorPreference', back_populates='user')
-    liked_beans    = relationship('UserLikedBean', back_populates='user')
-    liked_cafes    = relationship('UserLikedCafe', back_populates='user')
+    preferences   = relationship('UserPreferences', back_populates='user', uselist=False)
+    flavor_prefs  = relationship('UserFlavorPreference', back_populates='user')
+    liked_beans   = relationship('UserLikedBean', back_populates='user')
+    liked_locations = relationship('UserLikedLocation', back_populates='user')
+    interactions  = relationship('UserInteraction', back_populates='user')
 
 class UserPreferences(Base):
     __tablename__ = 'user_preferences'
@@ -92,7 +101,7 @@ class Bean(Base):
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
 
     specialties      = relationship('BeanSpecialty', back_populates='bean', uselist=False)
-    cafes            = relationship('Cafe', secondary='cafe_beans', back_populates='beans')
+    locations        = relationship('CafeLocation', secondary='cafe_location_beans', back_populates='beans')
     liked_by         = relationship('UserLikedBean', back_populates='bean')
 
 class BeanSpecialty(Base):
@@ -110,33 +119,47 @@ class BeanSpecialty(Base):
 
 class Cafe(Base):
     __tablename__ = 'cafes'
-    id         = Column(Integer, primary_key=True)
-    name       = Column(Text, nullable=False)
-    website    = Column(Text)
-    country    = Column(Text)
-    state      = Column(Text)
-    city       = Column(Text)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id          = Column(Integer, primary_key=True)
+    name        = Column(Text, nullable=False)
+    description = Column(Text)
+    website     = Column(Text)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
 
-    beans       = relationship('Bean', secondary='cafe_beans', back_populates='cafes')
-    menu_items  = relationship('MenuItem', back_populates='cafe')
-    liked_by    = relationship('UserLikedCafe', back_populates='cafe')
+    locations   = relationship('CafeLocation', back_populates='cafe')
 
-class CafeBean(Base):
-    __tablename__ = 'cafe_beans'
-    cafe_id = Column(Integer, ForeignKey('cafes.id', ondelete='CASCADE'), primary_key=True)
-    bean_id = Column(Integer, ForeignKey('beans.id', ondelete='CASCADE'), primary_key=True)
+class CafeLocation(Base):
+    __tablename__ = 'cafe_locations'
+    id          = Column(Integer, primary_key=True)
+    cafe_id     = Column(Integer, ForeignKey('cafes.id', ondelete='CASCADE'))
+    address     = Column(Text, nullable=False)
+    city        = Column(Text)
+    state       = Column(Text)
+    country     = Column(Text)
+    postal_code = Column(Text)
+    lat         = Column(Float)
+    lon         = Column(Float)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+
+    cafe        = relationship('Cafe', back_populates='locations')
+    menu_items  = relationship('MenuItem', back_populates='location')
+    beans       = relationship('Bean', secondary='cafe_location_beans', back_populates='locations')
 
 class MenuItem(Base):
     __tablename__ = 'menu_items'
     id          = Column(Integer, primary_key=True)
-    cafe_id     = Column(Integer, ForeignKey('cafes.id', ondelete='CASCADE'))
+    location_id = Column(Integer, ForeignKey('cafe_locations.id', ondelete='CASCADE'))
     name        = Column(Text, nullable=False)
     description = Column(Text)
     price_usd   = Column(Float)
+    drink_type  = Column(drink_type)
     created_at  = Column(DateTime(timezone=True), server_default=func.now())
 
-    cafe = relationship('Cafe', back_populates='menu_items')
+    location    = relationship('CafeLocation', back_populates='menu_items')
+
+class CafeLocationBean(Base):
+    __tablename__ = 'cafe_location_beans'
+    location_id = Column(Integer, ForeignKey('cafe_locations.id', ondelete='CASCADE'), primary_key=True)
+    bean_id     = Column(Integer, ForeignKey('beans.id', ondelete='CASCADE'), primary_key=True)
 
 class UserLikedBean(Base):
     __tablename__ = 'user_liked_beans'
@@ -147,22 +170,34 @@ class UserLikedBean(Base):
     user = relationship('User', back_populates='liked_beans')
     bean = relationship('Bean', back_populates='liked_by')
 
-class UserLikedCafe(Base):
-    __tablename__ = 'user_liked_cafes'
-    user_id  = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
-    cafe_id  = Column(Integer, ForeignKey('cafes.id', ondelete='CASCADE'), primary_key=True)
-    liked_at = Column(DateTime(timezone=True), server_default=func.now())
+class UserLikedLocation(Base):
+    __tablename__ = 'user_liked_locations'
+    user_id     = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    location_id = Column(Integer, ForeignKey('cafe_locations.id', ondelete='CASCADE'), primary_key=True)
+    liked_at    = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship('User', back_populates='liked_cafes')
-    cafe = relationship('Cafe', back_populates='liked_by')
+    user     = relationship('User', back_populates='liked_locations')
+    location = relationship('CafeLocation')
 
-# 3️⃣ Create engine & tables
+class UserInteraction(Base):
+    __tablename__ = 'user_interactions'
+    id           = Column(Integer, primary_key=True)
+    user_id      = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    interaction  = Column(interaction_type, nullable=False)
+    object_type  = Column(Text, nullable=False)
+    object_id    = Column(Integer, nullable=False)
+    additional_context   = Column(JSON)
+    occurred_at  = Column(DateTime(timezone=True), server_default=func.now())
+
+    user         = relationship('User', back_populates='interactions')
+
+# Engine & initialization
 def init_db():
     engine = create_engine(DATABASE_URL, echo=True)
-    # create enums in Postgres if not exist
+    # create all ENUM types
     for enum in [brewing_method, roast_level, consumption_frequency,
                  flavor_or_caffeine_pref, flavor_note, grind_type,
-                 bean_process, bean_type, budget_range]:
+                 bean_process, bean_type, budget_range, drink_type, interaction_type]:
         enum.create(bind=engine, checkfirst=True)
     Base.metadata.create_all(bind=engine)
 
