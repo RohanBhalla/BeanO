@@ -1,6 +1,195 @@
-# Cafe Web Scraper 🔍☕
+# Cafe Scraper - Enhanced Two-Phase Web Crawling
 
-A robust and intelligent web crawler and scraper designed specifically for coffee shop and cafe websites. This system automatically discovers all pages on a cafe website, extracts HTML content, and uses LLM processing to extract structured information about coffee beans and menu items.
+An intelligent web scraper designed specifically for crawling cafe and restaurant websites with a two-phase approach that gives you full control over what gets scraped.
+
+## New Two-Phase Workflow
+
+### Overview
+The scraper now operates in two distinct phases:
+
+1. **Phase 1: Link Discovery** - Discovers all links and saves them to a JSON file for manual curation
+2. **Phase 2: HTML Scraping** - Scrapes HTML content only from the links you've approved
+
+This approach gives you complete control over what gets scraped and allows for efficient link filtering.
+
+### Directory Structure
+
+The scraper automatically creates and organizes directories:
+
+```
+project_root/
+├── crawled_links/
+│   ├── lacabra_com.json
+│   ├── bluebottle_com.json
+│   └── ... (one JSON file per site)
+└── scraped_html/
+    ├── lacabra_com/
+    │   ├── 000_lacabra_com_home.html
+    │   ├── 001_lacabra_com_coffee.html
+    │   ├── 002_lacabra_com_locations.html
+    │   ├── ...
+    │   └── scraping_summary.json
+    └── bluebottle_com/
+        ├── 000_bluebottle_com_home.html
+        └── ...
+```
+
+## Usage
+
+### Phase 1: Link Discovery
+
+Discover all links from a website and save them for review:
+
+```bash
+# Basic discovery (scans up to 200 pages)
+python3 cafe_scraper.py discover https://lacabra.com
+
+# Discovery with custom page limit
+python3 cafe_scraper.py discover https://lacabra.com 500
+```
+
+This creates `crawled_links/lacabra_com.json` with all discovered links.
+
+### Manual Link Curation
+
+After discovery, edit the JSON file to mark which links you want to scrape:
+
+```bash
+# Preview the discovered links
+python3 cafe_scraper.py preview lacabra_com
+```
+
+Edit `crawled_links/lacabra_com.json` and change the `status` field:
+- `"status": "keep"` - Links you want to scrape
+- `"status": "skip"` - Links to ignore
+- `"status": "pending"` - Default status (ignored during scraping)
+
+### Phase 2: HTML Scraping
+
+Scrape HTML content from approved links:
+
+```bash
+# Scrape all links marked as "keep"
+python3 cafe_scraper.py scrape lacabra_com
+
+# Scrape links with a different status
+python3 cafe_scraper.py scrape lacabra_com pending
+```
+
+This creates `scraped_html/lacabra_com/` with all the HTML files.
+
+## Link Discovery Features
+
+The enhanced crawler discovers links through multiple methods:
+
+- **Standard anchor tags** (`<a href="...">`)
+- **JavaScript links** (URLs in JS code, event handlers)
+- **Meta tags** (canonical, next/prev, redirects)
+- **Form actions** (`<form action="...">`)
+- **Data attributes** (`data-href`, `data-url`, etc.)
+- **CSS content** (background images, @import)
+- **JSON-LD structured data** (schema.org markup)
+- **Microdata** (itemid, itemprop URLs)
+- **HTTP headers** (Link header, redirects)
+- **HTML comments** (commented URLs)
+
+## JSON File Format
+
+The links file contains detailed metadata for each discovered link:
+
+```json
+{
+  "discovery_metadata": {
+    "base_url": "https://lacabra.com",
+    "site_name": "lacabra_com",
+    "timestamp": "2024-01-01T12:00:00",
+    "total_pages_scanned": 45,
+    "total_links_found": 234
+  },
+  "discovered_links": [
+    {
+      "url": "https://lacabra.com/coffee",
+      "source_page": "https://lacabra.com/",
+      "discovery_method": "anchor",
+      "link_type": "internal",
+      "status": "pending",
+      "notes": ""
+    }
+  ],
+  "source_pages": [...]
+}
+```
+
+## Legacy One-Phase Mode
+
+The original workflow is still supported for backward compatibility:
+
+```bash
+# Old style - does discovery and scraping in one go
+python3 cafe_scraper.py https://lacabra.com ./output_dir 200
+```
+
+## Advanced Usage
+
+### Bulk Link Status Updates
+
+You can programmatically update link statuses:
+
+```python
+from cafe_scraper import CafeScraper
+
+scraper = CafeScraper()
+
+# Mark all internal links as "keep"
+scraper.update_links_status(
+    "crawled_links/lacabra_com.json", 
+    {"internal_only": "keep"}
+)
+
+# Skip all external links
+scraper.update_links_status(
+    "crawled_links/lacabra_com.json", 
+    {"external": "skip"}
+)
+
+# Keep only links containing "coffee" or "menu"
+scraper.update_links_status(
+    "crawled_links/lacabra_com.json", 
+    {"contains_coffee": "keep", "contains_menu": "keep"}
+)
+```
+
+### Configuration Options
+
+```python
+# Create scraper with custom settings
+scraper = CafeScraper(
+    max_pages=500,           # Pages to scan during discovery
+    verbose=True,            # Detailed logging
+    aggressive_crawling=True # Enhanced link discovery
+)
+```
+
+## Benefits of Two-Phase Approach
+
+1. **Full Control** - Review every link before scraping
+2. **Efficiency** - Only scrape the content you need
+3. **Transparency** - See exactly what links were discovered and how
+4. **Flexibility** - Re-run scraping with different link selections
+5. **Speed** - Link discovery is much faster than full scraping
+6. **Organization** - Automatic directory structure and naming
+
+## Requirements
+
+- Python 3.7+
+- requests
+- beautifulsoup4
+- pathlib
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
 ## Features ✨
 

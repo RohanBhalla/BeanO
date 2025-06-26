@@ -428,64 +428,6 @@ Website content:
         logger.info(f"Summary saved to: {summary_file}")
         
         return summary
-    
-    def test_sample(self) -> Dict[str, Any]:
-        """Test the processor with a sample HTML content"""
-        sample_html = """
-        <html>
-        <head><title>Coffee Shop</title></head>
-        <body>
-            <h1>Our Coffee Selection</h1>
-            <div class="product">
-                <h2>Ethiopian Yirgacheffe</h2>
-                <p>Weight: 12oz</p>
-                <p>Price: $18.99</p>
-                <p>Roaster: Blue Mountain Coffee Co.</p>
-                <p>Origin: Yirgacheffe, Ethiopia</p>
-                <p>Roast Level: Light</p>
-                <p>Tasting Notes: Bright citrus, floral, honey sweetness</p>
-                <p>Grind: Whole Bean</p>
-            </div>
-            <div class="product">
-                <h2>Colombia Supremo</h2>
-                <p>Weight: 1lb</p>
-                <p>Price: $16.50</p>
-                <p>Roaster: Mountain View Roasters</p>
-                <p>Origin: Colombia</p>
-                <p>Roast Level: Medium</p>
-                <p>Tasting Notes: Chocolate, caramel, nutty</p>
-                <p>Grind: Ground for Espresso</p>
-            </div>
-        </body>
-        </html>
-        """
-        
-        logger.info("Testing with sample HTML content...")
-        
-        # Extract text
-        text_content = self.extract_text_from_html(sample_html)
-        
-        # Process with Gemini
-        coffee_beans = self.process_with_gemini(text_content)
-        
-        result = {
-            'test_type': 'sample',
-            'processed_at': datetime.now().isoformat(),
-            'coffee_beans': coffee_beans,
-            'beans_found': len(coffee_beans)
-        }
-        
-        # Save test result
-        test_file = self.output_dir / f"test_sample_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(test_file, 'w', encoding='utf-8') as f:
-            json.dump(result, f, indent=2, ensure_ascii=False)
-        
-        logger.info(f"Test complete! Found {len(coffee_beans)} coffee bean products")
-        logger.info(f"Test result saved to: {test_file}")
-        
-        return result
-    
-    def test_menu_sample(self) -> Dict[str, Any]:
         """Test the menu extraction with a sample HTML content"""
         html_path = "/Users/ronballer/Documents/GitHub/BeanO-Project/data_collection/crawling/scraped_data/test_folder/Best coffee to buy online. Coffee Subscriptions. Strong and Freshly Roasted. Locally owned coffee company.html"
         
@@ -493,7 +435,7 @@ Website content:
         
         try:
             with open(html_path, 'r', encoding='utf-8') as f:
-                sample_html = f.read()
+                    sample_html = f.read()
         except Exception as e:
             logger.error(f"Error reading HTML file: {e}")
             return {

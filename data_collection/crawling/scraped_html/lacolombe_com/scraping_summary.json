@@ -1,0 +1,12 @@
+{
+  "phase": "html_scraping",
+  "timestamp": "2025-06-26T16:31:08.106748",
+  "links_file_used": "crawled_links/lacolombe_com.json",
+  "status_filter_used": "keep",
+  "total_links_in_file": 788,
+  "filtered_links_count": 3,
+  "successfully_scraped": 3,
+  "failed_urls": [],
+  "output_directory": "scraped_html/lacolombe_com",
+  "base_url": "https://www.lacolombe.com"
+}

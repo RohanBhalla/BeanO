@@ -1,0 +1,104 @@
+{
+  "input_directory": "/Users/akshat/Documents/WORK/Github/BeanO/data_collection/crawling/scraped_html/lacolombe_com",
+  "processed_at": "2025-06-26T16:33:33.424313",
+  "files_processed": 3,
+  "total_beans_found": 5,
+  "results": [
+    {
+      "source_file": "001_lacolombe.com_products_corsica.html",
+      "processed_at": "2025-06-26T16:33:31.090517",
+      "coffee_beans": [
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "12 oz",
+          "price": "$16.00",
+          "producer": "La Colombe Coffee Roasters",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices",
+            "deep, dark chocolate tones",
+            "bold coffee flavor",
+            "cocoa notes"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "12 oz",
+          "price": "$16.00",
+          "producer": "La Colombe Coffee Roasters",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices",
+            "deep, dark chocolate tones",
+            "bold coffee flavor",
+            "cocoa notes"
+          ],
+          "grind_type": "GROUND_COFFEE"
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "5 lb",
+          "price": "$88.00",
+          "producer": "La Colombe Coffee Roasters",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices",
+            "deep, dark chocolate tones",
+            "bold coffee flavor",
+            "cocoa notes"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "5 lb",
+          "price": "$88.00",
+          "producer": "La Colombe Coffee Roasters",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices",
+            "deep, dark chocolate tones",
+            "bold coffee flavor",
+            "cocoa notes"
+          ],
+          "grind_type": "GROUND_COFFEE"
+        }
+      ],
+      "beans_found": 4
+    },
+    {
+      "source_file": "000_lacolombe.com_products_strawberry-mocha-draft-latte.html",
+      "processed_at": "2025-06-26T16:33:32.032571",
+      "coffee_beans": [],
+      "beans_found": 0
+    },
+    {
+      "source_file": "002_lacolombe.com_products_single-origin-pack.html",
+      "processed_at": "2025-06-26T16:33:33.423492",
+      "coffee_beans": [
+        {
+          "name": "Single Origin Pack",
+          "weight": "12 oz",
+          "price": "$39.00",
+          "roast_level": "MEDIUM_DARK",
+          "flavor_notes": [
+            "Chocolatey",
+            "Nutty",
+            "Sweet"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 1
+    }
+  ]
+}

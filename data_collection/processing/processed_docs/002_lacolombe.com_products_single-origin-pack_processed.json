@@ -1,0 +1,19 @@
+{
+  "source_file": "002_lacolombe.com_products_single-origin-pack.html",
+  "processed_at": "2025-06-26T16:33:33.423492",
+  "coffee_beans": [
+    {
+      "name": "Single Origin Pack",
+      "weight": "12 oz",
+      "price": "$39.00",
+      "roast_level": "MEDIUM_DARK",
+      "flavor_notes": [
+        "Chocolatey",
+        "Nutty",
+        "Sweet"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    }
+  ],
+  "beans_found": 1
+}

@@ -1,0 +1,71 @@
+{
+  "source_file": "001_lacolombe.com_products_corsica.html",
+  "processed_at": "2025-06-26T16:33:31.090517",
+  "coffee_beans": [
+    {
+      "name": "Corsica Dark Roast Coffee",
+      "weight": "12 oz",
+      "price": "$16.00",
+      "producer": "La Colombe Coffee Roasters",
+      "roast_level": "DARK",
+      "flavor_notes": [
+        "Baker's Chocolate",
+        "Red Wine",
+        "Spices",
+        "deep, dark chocolate tones",
+        "bold coffee flavor",
+        "cocoa notes"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    },
+    {
+      "name": "Corsica Dark Roast Coffee",
+      "weight": "12 oz",
+      "price": "$16.00",
+      "producer": "La Colombe Coffee Roasters",
+      "roast_level": "DARK",
+      "flavor_notes": [
+        "Baker's Chocolate",
+        "Red Wine",
+        "Spices",
+        "deep, dark chocolate tones",
+        "bold coffee flavor",
+        "cocoa notes"
+      ],
+      "grind_type": "GROUND_COFFEE"
+    },
+    {
+      "name": "Corsica Dark Roast Coffee",
+      "weight": "5 lb",
+      "price": "$88.00",
+      "producer": "La Colombe Coffee Roasters",
+      "roast_level": "DARK",
+      "flavor_notes": [
+        "Baker's Chocolate",
+        "Red Wine",
+        "Spices",
+        "deep, dark chocolate tones",
+        "bold coffee flavor",
+        "cocoa notes"
+      ],
+      "grind_type": "WHOLE_BEAN"
+    },
+    {
+      "name": "Corsica Dark Roast Coffee",
+      "weight": "5 lb",
+      "price": "$88.00",
+      "producer": "La Colombe Coffee Roasters",
+      "roast_level": "DARK",
+      "flavor_notes": [
+        "Baker's Chocolate",
+        "Red Wine",
+        "Spices",
+        "deep, dark chocolate tones",
+        "bold coffee flavor",
+        "cocoa notes"
+      ],
+      "grind_type": "GROUND_COFFEE"
+    }
+  ],
+  "beans_found": 4
+}
