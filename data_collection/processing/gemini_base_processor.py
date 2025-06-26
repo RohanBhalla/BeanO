@@ -72,21 +72,20 @@ class GeminiHTMLProcessor:
     def create_prompt(self, text_content: str) -> str:
         """Create the prompt for Gemini with the extracted text"""
         prompt = f"""
-Please analyze the following text extracted from a coffee shop/cafe website and extract information about coffee beans for sale.
+Extract coffee bean product data from the HTML. Return only actual products for sale.
 
-Look for coffee products with details like:
-- Product names
-- Weights/package sizes
-- Prices
-- Producer/roaster information
-- Origin/region information
-- Roast levels
-- Flavor notes/tasting notes
-- Grind types
+Required fields:
+- name: Product name
+- weight: Package size (e.g., "12oz", "340g") 
+- price: Listed price
+- producer: Roaster/brand name
+- region: Origin country/area
+- roast_level: LIGHT/MEDIUM/MEDIUM_DARK/DARK
+- flavor_notes: Array of tasting notes
+- grind_type: WHOLE_BEAN/ESPRESSO/FILTER/FRENCH_PRESS
 
-Only extract information about actual coffee bean products for sale. Ignore general website content, navigation, headers, footers, etc.
-
-If no coffee bean products are found, return an empty array.
+Skip navigation, headers, footers, and non-product content.
+Return empty array if no coffee products found.
 
 Website content:
 {text_content}
