@@ -78,11 +78,13 @@ Required fields:
 - name: Product name
 - weight: Package size (e.g., "12oz", "340g") 
 - price: Listed price
+- currency: Currency of the price
 - producer: Roaster/brand name
 - region: Origin country/area
 - roast_level: LIGHT/MEDIUM/MEDIUM_DARK/DARK
 - flavor_notes: Array of tasting notes
 - grind_type: WHOLE_BEAN/ESPRESSO/FILTER/FRENCH_PRESS
+- description: Detailed product description from marketing copy, product details, or any descriptive text about the coffee's characteristics, origin story, or brewing notes
 
 Optional specialty fields (when available):
 - farm: Farm name
@@ -92,6 +94,8 @@ Optional specialty fields (when available):
 - suitable_brew_type: Recommended brewing methods (espresso, drip, pour-over, etc.)
 - bean_type: Coffee species (Arabica, Robusta, Liberica, Excelsa)
 - variety: Coffee variety/cultivar
+
+Always try to extract the product description when available. Look for detailed product descriptions, marketing copy, origin stories, tasting notes explanations, or any text that describes the coffee's characteristics.
 
 Skip navigation, headers, footers, and non-product content.
 Return empty array if no coffee products found.
@@ -149,9 +153,9 @@ Website content:
             ]
             
             generate_content_config = types.GenerateContentConfig(
-                temperature=0.25,
+                temperature=0.2,
                 thinking_config=types.ThinkingConfig(
-                    thinking_budget=0,
+                    thinking_budget=1000,
                 ),
                 response_mime_type="application/json",
                 response_schema=genai.types.Schema(
@@ -172,6 +176,15 @@ Website content:
                             "price": genai.types.Schema(
                                 type=genai.types.Type.NUMBER,
                                 description="Price of the coffee",
+                            ),
+                            "currency": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Currency of the price",
+                                enum=["USD", "EUR", "GBP", "CAD", "AUD", "JPY", "CHF", "SEK", "NOK", "DKK", "INR", "other"],
+                            ),
+                            "description": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Detailed product description from product details or descriptive text about the coffee",
                             ),
                             "producer": genai.types.Schema(
                                 type=genai.types.Type.STRING,
@@ -275,7 +288,7 @@ Website content:
             generate_content_config = types.GenerateContentConfig(
                 temperature=0.25,
                 thinking_config=types.ThinkingConfig(
-                    thinking_budget=0,
+                    thinking_budget=-1,
                 ),
                 response_mime_type="application/json",
                 response_schema=genai.types.Schema(

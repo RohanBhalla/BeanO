@@ -618,7 +618,7 @@
       "notes": ""
     },
     {
-      "url": "https://www.lacolombe.com/products/corsica?_pos=1&_sid=999b24b8e&_ss=r",
+      "url": "https://www.seycoffee.com/collections/coffee/products/2025-victor-alfonso-bonilla-la-chorrera-end-of-season-colombia",
       "source_page": "https://www.lacolombe.com/search?q=corsica",
       "discovery_method": "anchor",
       "link_type": "internal",
@@ -626,19 +626,19 @@
       "notes": ""
     },
     {
-      "url": "https://www.lacolombe.com/products/bestsellers-gift-box?_pos=6&_sid=999b24b8e&_ss=r",
+      "url": "https://www.traderjoes.com/home/products/pdp/joe-medium-roast-ground-coffee-056332",
       "source_page": "https://www.lacolombe.com/search?q=corsica",
       "discovery_method": "anchor",
       "link_type": "internal",
-      "status": "pending",
+      "status": "keep",
       "notes": ""
     },
     {
-      "url": "https://www.lacolombe.com/products/corsica-k-cup-pods?_pos=2&_sid=999b24b8e&_ss=r",
+      "url": "https://www.devocion.com/collections/house-blends/products/house-blend-coffee-toro",
       "source_page": "https://www.lacolombe.com/search?q=corsica",
       "discovery_method": "anchor",
       "link_type": "internal",
-      "status": "pending",
+      "status": "keep",
       "notes": ""
     },
     {
@@ -762,7 +762,7 @@
       "notes": ""
     },
     {
-      "url": "https://www.lacolombe.com/products/single-origin-pack",
+      "url": "https://www.partnerscoffee.com/products/brooklyn",
       "source_page": "https://www.lacolombe.com/collections/new-arrivals",
       "discovery_method": "anchor",
       "link_type": "internal",

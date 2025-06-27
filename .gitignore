@@ -5,3 +5,5 @@
 .git
 __pycache__
 .pycache
+*.html
+*.json

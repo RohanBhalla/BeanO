@@ -53,7 +53,7 @@ interaction_type = PG_ENUM(
     name='interaction_type', create_type=True
 )
 currency = PG_ENUM(
-    'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'SEK', 'NOK', 'DKK', 'other',
+    'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'SEK', 'NOK', 'DKK', 'INR', 'other',
     name='currency', create_type=True
 )
 
