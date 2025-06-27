@@ -1,18 +1,46 @@
--- 1️⃣ ENUMS (additions: drink_type, interaction_type)
+-- 1️⃣ ENUMS (additions: drink_type, interaction_type, currency)
 CREATE TYPE drink_type AS ENUM (
   'espresso', 'cold_brew', 'latte', 'cappuccino', 'americano', 'filter', 'other'
 );
 CREATE TYPE interaction_type AS ENUM (
   'view', 'click', 'add_to_favorites', 'purchase', 'other'
 );
+CREATE TYPE currency AS ENUM (
+  'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'SEK', 'NOK', 'DKK', 'other'
+);
+CREATE TYPE roast_level AS ENUM (
+  'light', 'medium_light', 'medium', 'medium_dark', 'dark', 'extra_dark', 'no_preference'
+);
+CREATE TYPE grind_type AS ENUM (
+  'whole', 'extra_coarse', 'coarse', 'medium_coarse', 'medium', 'medium_fine', 'fine', 'extra_fine', 'turkish'
+);
+CREATE TYPE brewing_method AS ENUM (
+  'drip_filter', 'espresso', 'pour_over', 'french_press', 'cold_brew', 'aeropress', 'moka_pot', 'siphon', 'other'
+);
+CREATE TYPE consumption_frequency AS ENUM (
+  'daily', 'several_times_a_week', 'once_a_week', 'less_than_once_a_week'
+);
+CREATE TYPE flavor_or_caffeine_pref AS ENUM (
+  'flavor', 'caffeine', 'either'
+);
+CREATE TYPE flavor_note AS ENUM (
+  'chocolate_nutty', 'fruity_bright', 'caramel_sweet', 'earthy_spicy'
+);
+CREATE TYPE bean_type AS ENUM (
+  'arabica', 'robusta', 'liberica', 'excelsa'
+);
+CREATE TYPE budget_range AS ENUM (
+  'low', 'medium', 'high'
+);
 
 -- 2️⃣ Cafés & Locations
--- “cafes” now holds the brand‐level info; “cafe_locations” holds each physical spot.
+-- "cafes" now holds the brand‐level info; "cafe_locations" holds each physical spot.
 CREATE TABLE cafes (
   id          SERIAL PRIMARY KEY,
   name        TEXT NOT NULL,
   description TEXT,
   website     TEXT,
+  url         TEXT,
   created_at  TIMESTAMPTZ DEFAULT now()
 );
 
@@ -29,18 +57,19 @@ CREATE TABLE cafe_locations (
   created_at  TIMESTAMPTZ DEFAULT now()
 );
 
--- 3️⃣ Beans (unchanged)
+-- 3️⃣ Beans (updated with weight as string, price with currency, removed region_country, added url)
 CREATE TABLE beans (
   id                    SERIAL PRIMARY KEY,
   name                  TEXT NOT NULL,
-  weight_g              REAL,
-  price_usd             REAL,
+  weight                TEXT,
+  price                 REAL,
+  currency              currency,
   proprietor            TEXT,
-  region_country        TEXT,
   region_area           TEXT,
   roast_level           roast_level,
   flavor_notes          TEXT[],        
   grind_type            grind_type,
+  url                   TEXT,
   created_at            TIMESTAMPTZ DEFAULT now()
 );
 
@@ -48,21 +77,23 @@ CREATE TABLE bean_specialties (
   bean_id               INT PRIMARY KEY REFERENCES beans(id) ON DELETE CASCADE,
   farm                  TEXT,
   altitude_masl         INT,
-  process               bean_process,
+  process               TEXT,
   agtron_roast_level    INT,
   suitable_brew_types   brewing_method[],
   bean_type             bean_type,
   variety               TEXT
 );
 
--- 4️⃣ Menu Items tied to a specific location, with drink type
+-- 4️⃣ Menu Items tied to a specific location, with drink type and url
 CREATE TABLE menu_items (
   id            SERIAL PRIMARY KEY,
   location_id   INT REFERENCES cafe_locations(id) ON DELETE CASCADE,
   name          TEXT NOT NULL,
   description   TEXT,
-  price_usd     REAL,
+  price         REAL,
+  currency      currency,
   drink_type    drink_type,
+  url           TEXT,
   created_at    TIMESTAMPTZ DEFAULT now()
 );
 
@@ -73,7 +104,7 @@ CREATE TABLE cafe_location_beans (
   PRIMARY KEY(location_id, bean_id)
 );
 
--- 6️⃣ Users & Preferences (unchanged)
+-- 6️⃣ Users & Preferences (added location fields)
 CREATE TABLE users (
   id              SERIAL PRIMARY KEY,
   first_name      TEXT NOT NULL,
@@ -81,6 +112,9 @@ CREATE TABLE users (
   username        TEXT NOT NULL UNIQUE,
   email           TEXT NOT NULL UNIQUE,
   dob             DATE,
+  country         TEXT,
+  state           TEXT,
+  city            TEXT,
   budget_range    budget_range,
   created_at      TIMESTAMPTZ DEFAULT now()
 );
