@@ -61,6 +61,7 @@ CREATE TABLE cafe_locations (
 CREATE TABLE beans (
   id                    SERIAL PRIMARY KEY,
   name                  TEXT NOT NULL,
+  description           TEXT,
   weight                TEXT,
   price                 REAL,
   currency              currency,

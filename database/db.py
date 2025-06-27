@@ -99,6 +99,7 @@ class Bean(Base):
     __tablename__ = 'beans'
     id               = Column(Integer, primary_key=True)
     name             = Column(Text, nullable=False)
+    description      = Column(Text)
     weight           = Column(Text)
     price            = Column(Float)
     currency         = Column(currency)
