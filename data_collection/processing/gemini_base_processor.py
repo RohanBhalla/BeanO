@@ -43,9 +43,45 @@ class GeminiHTMLProcessor:
         logger.info(f"Initialized Gemini processor. Output directory: {self.output_dir}")
     
     def extract_text_from_html(self, html_content: str) -> str:
-        """Extract clean text from HTML content"""
+        """Extract clean text from HTML content while preserving product descriptions"""
         try:
             soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # First, try to extract structured product data and descriptions
+            structured_content = []
+            
+            # Extract meta descriptions which often contain product descriptions
+            meta_desc = soup.find('meta', attrs={'name': 'description'})
+            if meta_desc and meta_desc.get('content'):
+                structured_content.append(f"META DESCRIPTION: {meta_desc.get('content')}")
+            
+            # Extract OpenGraph descriptions
+            og_desc = soup.find('meta', attrs={'property': 'og:description'})
+            if og_desc and og_desc.get('content'):
+                structured_content.append(f"OG DESCRIPTION: {og_desc.get('content')}")
+            
+            # Extract Twitter card descriptions
+            twitter_desc = soup.find('meta', attrs={'name': 'twitter:description'})
+            if twitter_desc and twitter_desc.get('content'):
+                structured_content.append(f"TWITTER DESCRIPTION: {twitter_desc.get('content')}")
+            
+            # Look for product description sections in common HTML patterns
+            description_selectors = [
+                '[class*="description"]',
+                '[class*="product-description"]', 
+                '[class*="product-details"]',
+                '[class*="product-info"]',
+                '[id*="description"]',
+                '.prose p', # Common for product content
+                '[data-product-description]'
+            ]
+            
+            for selector in description_selectors:
+                elements = soup.select(selector)
+                for elem in elements:
+                    text = elem.get_text(strip=True)
+                    if len(text) > 50 and any(keyword in text.lower() for keyword in ['flavor', 'taste', 'blend', 'roast', 'origin', 'notes', 'brew', 'coffee']):
+                        structured_content.append(f"PRODUCT DESCRIPTION: {text}")
             
             # Remove script and style elements
             for script in soup(["script", "style", "meta", "link"]):
@@ -55,15 +91,24 @@ class GeminiHTMLProcessor:
             text = soup.get_text()
             lines = (line.strip() for line in text.splitlines())
             chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-            text = ' '.join(chunk for chunk in chunks if chunk)
+            full_text = ' '.join(chunk for chunk in chunks if chunk)
+            
+            # Combine structured content with full text
+            final_text = '\n\n'.join(structured_content) + '\n\nFULL PAGE CONTENT:\n' + full_text
             
             # Limit text length to avoid token limits
             max_chars = 50000  # Approximate limit for Gemini
-            if len(text) > max_chars:
-                text = text[:max_chars] + "..."
+            if len(final_text) > max_chars:
+                # Prioritize keeping the structured descriptions
+                structured_part = '\n\n'.join(structured_content)
+                remaining_chars = max_chars - len(structured_part) - 100
+                if remaining_chars > 0:
+                    final_text = structured_part + '\n\nFULL PAGE CONTENT:\n' + full_text[:remaining_chars] + "..."
+                else:
+                    final_text = structured_part + "..."
                 logger.warning(f"Text truncated to {max_chars} characters")
             
-            return text
+            return final_text
         
         except Exception as e:
             logger.error(f"Error extracting text from HTML: {e}")
@@ -74,31 +119,46 @@ class GeminiHTMLProcessor:
         prompt = f"""
 Extract coffee bean product data from the HTML. Return only actual products for sale.
 
-Required fields:
+CRITICAL: You MUST extract the product description. Look for:
+- Meta descriptions (META DESCRIPTION, OG DESCRIPTION, TWITTER DESCRIPTION)
+- Product description sections (PRODUCT DESCRIPTION)
+- Marketing copy describing the coffee's characteristics
+- Flavor profiles and tasting notes descriptions
+- Origin stories and brewing recommendations
+- Any text that describes what the coffee tastes like or its characteristics
+
+Required fields (ALL MUST BE EXTRACTED):
 - name: Product name
 - weight: Package size (e.g., "12oz", "340g") 
-- price: Listed price
+- price: Listed price (number only)
 - currency: Currency of the price
 - producer: Roaster/brand name
 - region: Origin country/area
-- roast_level: LIGHT/MEDIUM/MEDIUM_DARK/DARK
+- roast_level: LIGHT/MEDIUM_LIGHT/MEDIUM/MEDIUM_DARK/DARK/EXTRA_DARK
 - flavor_notes: Array of tasting notes
-- grind_type: WHOLE_BEAN/ESPRESSO/FILTER/FRENCH_PRESS
-- description: Detailed product description from marketing copy, product details, or any descriptive text about the coffee's characteristics, origin story, or brewing notes
+- grind_type: WHOLE/COARSE/MEDIUM/FINE/etc.
+- description: **REQUIRED** - Detailed product description. This should be a comprehensive description including flavor profile, characteristics, brewing notes, origin story, or marketing copy. Look in meta tags, product sections, and descriptive text. If multiple descriptions exist, combine them into one comprehensive description.
 
 Optional specialty fields (when available):
 - farm: Farm name
 - altitude: Elevation in masl
 - process: Processing method (natural, washed, honey, etc.)
 - agtron_roast_level: Agtron number/measurement
-- suitable_brew_type: Recommended brewing methods (espresso, drip, pour-over, etc.)
+- suitable_brew_types: Recommended brewing methods
 - bean_type: Coffee species (Arabica, Robusta, Liberica, Excelsa)
 - variety: Coffee variety/cultivar
 
-Always try to extract the product description when available. Look for detailed product descriptions, marketing copy, origin stories, tasting notes explanations, or any text that describes the coffee's characteristics.
+DESCRIPTION EXTRACTION EXAMPLES:
+- "A perennial filter classic with flavors of creamy cocoa, sweet toffee and rich dried fruits"
+- "This Ethiopian coffee features bright citrus notes with a floral aroma and honey sweetness"
+- "Medium roast blend perfect for espresso with chocolate and caramel undertones"
 
-Skip navigation, headers, footers, and non-product content.
-Return empty array if no coffee products found.
+IMPORTANT: 
+- Every product MUST have a description - this is not optional
+- If you find meta descriptions, product descriptions, or marketing copy, use them
+- Combine multiple description sources if needed
+- Skip navigation, headers, footers, and non-product content
+- Return empty array if no coffee products found
 
 Website content:
 {text_content}
@@ -138,6 +198,27 @@ Website content:
 """
         return prompt
     
+    def validate_extraction_results(self, coffee_beans: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Validate extracted coffee beans and ensure descriptions are present"""
+        validated_beans = []
+        
+        for i, bean in enumerate(coffee_beans):
+            # Check if description exists and is meaningful
+            description = bean.get('description', '').strip()
+            
+            if not description:
+                logger.warning(f"Bean {i+1} '{bean.get('name', 'Unknown')}' is missing description - this is required")
+                # Don't skip the bean, but log the issue
+                bean['description'] = "Description not available in source content"
+            elif len(description) < 20:
+                logger.warning(f"Bean {i+1} '{bean.get('name', 'Unknown')}' has very short description: '{description}'")
+            else:
+                logger.info(f"Bean {i+1} '{bean.get('name', 'Unknown')}' has description of {len(description)} characters")
+            
+            validated_beans.append(bean)
+        
+        return validated_beans
+
     def process_with_gemini(self, text_content: str) -> List[Dict[str, Any]]:
         """Process text content with Gemini and return structured data"""
         try:
@@ -153,9 +234,9 @@ Website content:
             ]
             
             generate_content_config = types.GenerateContentConfig(
-                temperature=0.2,
+                temperature=0.3,  # Slightly increased for more comprehensive extraction
                 thinking_config=types.ThinkingConfig(
-                    thinking_budget=1000,
+                    thinking_budget=2000,  # Increased thinking budget
                 ),
                 response_mime_type="application/json",
                 response_schema=genai.types.Schema(
@@ -184,7 +265,7 @@ Website content:
                             ),
                             "description": genai.types.Schema(
                                 type=genai.types.Type.STRING,
-                                description="Detailed product description from product details or descriptive text about the coffee",
+                                description="REQUIRED: Comprehensive product description including flavor profile, characteristics, brewing notes, origin story, or marketing copy. Must be extracted from meta tags, product sections, or descriptive text.",
                             ),
                             "producer": genai.types.Schema(
                                 type=genai.types.Type.STRING,
@@ -245,6 +326,7 @@ Website content:
                                 description="Specific coffee variety/cultivar (e.g., Bourbon, Typica, Geisha) within the bean type.",
                             ),
                         },
+                        required=["name", "price", "description"],  # Making description required
                     ),
                 ),
             )
@@ -261,7 +343,12 @@ Website content:
             # Parse JSON response
             try:
                 result = json.loads(response_text)
-                return result if isinstance(result, list) else []
+                if isinstance(result, list):
+                    # Validate the results
+                    validated_result = self.validate_extraction_results(result)
+                    return validated_result
+                else:
+                    return []
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse JSON response: {e}")
                 logger.error(f"Response text: {response_text}")

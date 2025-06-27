@@ -9,6 +9,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 import json
 
+# Add Playwright imports with graceful fallback
+try:
+    from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
+    sync_playwright = None
+    PlaywrightTimeoutError = Exception
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -31,12 +40,383 @@ class CrawlConfig:
     follow_redirects: bool = True
     normalize_urls: bool = False
     verbose_logging: bool = False
+    # New dynamic rendering options
+    enable_dynamic_rendering: bool = True
+    playwright_timeout: int = 30000  # 30 seconds
+    wait_for_selector: Optional[str] = None
+    wait_for_network_idle: bool = True
+    js_detection_threshold: float = 0.1  # Minimum content ratio to consider static (deprecated, kept for compatibility)
+    prioritize_structured_data: bool = True
+    # Advanced JS detection settings
+    js_detection_strict_mode: bool = False  # If True, requires higher confidence for JS dependency
+    js_detection_min_score: int = 45  # Minimum score to consider JS-dependent (reduced false positives)
+    js_detection_conservative_score: int = 30  # Conservative threshold with strong indicators
     
     def __post_init__(self):
         if self.allowed_extensions is None:
             self.allowed_extensions = {'.html', '.htm', '.php', '.asp', '.aspx', '.jsp', ''}
         if self.blocked_extensions is None:
             self.blocked_extensions = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.css', '.js', '.xml', '.zip', '.doc', '.docx', '.svg', '.ico'}
+
+class DynamicContentRenderer:
+    """Handles dynamic content rendering using Playwright"""
+    
+    def __init__(self, config: CrawlConfig):
+        self.config = config
+        self.playwright = None
+        self.browser = None
+        self.context = None
+        
+        if not PLAYWRIGHT_AVAILABLE and config.enable_dynamic_rendering:
+            logger.warning("Playwright not available. Install with: pip install playwright && playwright install")
+            self.config.enable_dynamic_rendering = False
+    
+    def __enter__(self):
+        if self.config.enable_dynamic_rendering and PLAYWRIGHT_AVAILABLE:
+            try:
+                self.playwright = sync_playwright().start()
+                self.browser = self.playwright.chromium.launch(
+                    headless=True,
+                    args=['--no-sandbox', '--disable-dev-shm-usage']
+                )
+                self.context = self.browser.new_context(
+                    user_agent=self.config.user_agent,
+                    viewport={'width': 1920, 'height': 1080}
+                )
+                logger.info("Playwright browser initialized for dynamic content rendering")
+            except Exception as e:
+                logger.error(f"Failed to initialize Playwright: {e}")
+                self.config.enable_dynamic_rendering = False
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.context:
+            self.context.close()
+        if self.browser:
+            self.browser.close()
+        if self.playwright:
+            self.playwright.stop()
+    
+    def get_dynamic_content(self, url: str) -> Optional[Dict]:
+        """Render page with JavaScript and extract content"""
+        if not self.config.enable_dynamic_rendering or not self.browser:
+            return None
+        
+        try:
+            page = self.context.new_page()
+            
+            # Intercept JSON-LD and structured data requests
+            intercepted_data = []
+            
+            def handle_response(response):
+                if 'application/ld+json' in response.headers.get('content-type', ''):
+                    try:
+                        data = response.json()
+                        # Handle both list and dict formats for intercepted JSON-LD
+                        if isinstance(data, list):
+                            intercepted_data.extend(data)
+                        elif isinstance(data, dict):
+                            intercepted_data.append(data)
+                        # Ignore other data types
+                    except:
+                        pass
+            
+            page.on('response', handle_response)
+            
+            # Navigate to the page
+            logger.info(f"Rendering dynamic content for: {url}")
+            response = page.goto(url, timeout=self.config.playwright_timeout)
+            
+            if not response or response.status >= 400:
+                logger.warning(f"Failed to load page: {url} (status: {response.status if response else 'No response'})")
+                return None
+            
+            # Wait for content to load
+            if self.config.wait_for_selector:
+                try:
+                    page.wait_for_selector(self.config.wait_for_selector, timeout=self.config.playwright_timeout)
+                except PlaywrightTimeoutError:
+                    logger.warning(f"Timeout waiting for selector {self.config.wait_for_selector} on {url}")
+            
+            if self.config.wait_for_network_idle:
+                try:
+                    page.wait_for_load_state('networkidle', timeout=self.config.playwright_timeout)
+                except PlaywrightTimeoutError:
+                    logger.warning(f"Timeout waiting for network idle on {url}")
+            
+            # Additional wait for heavy JavaScript sites
+            page.wait_for_timeout(2000)  # 2 second buffer
+            
+            # Get the rendered HTML
+            html_content = page.content()
+            final_url = page.url
+            
+            page.close()
+            
+            return {
+                'html_content': html_content,
+                'final_url': final_url,
+                'intercepted_json_ld': intercepted_data,
+                'rendering_method': 'dynamic'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error rendering dynamic content for {url}: {e}")
+            return None
+
+class StructuredDataExtractor:
+    """Extracts structured data from HTML with priority-based approach"""
+    
+    def __init__(self, config: CrawlConfig):
+        self.config = config
+    
+    def extract_structured_data(self, soup: BeautifulSoup, intercepted_json_ld: List = None) -> Dict:
+        """Extract structured data with priority order: JSON-LD > Microdata > Meta tags > Fallback"""
+        structured_data = {
+            'json_ld': [],
+            'microdata': [],
+            'meta_tags': {},
+            'opengraph': {},
+            'menu_items': [],
+            'products': [],
+            'organization': {},
+            'extraction_methods': []
+        }
+        
+        # Priority 1: Intercepted JSON-LD (from dynamic rendering)
+        if intercepted_json_ld:
+            structured_data['json_ld'].extend(intercepted_json_ld)
+            structured_data['extraction_methods'].append('intercepted_json_ld')
+        
+        # Priority 2: JSON-LD from page source
+        json_ld_data = self.extract_json_ld(soup)
+        if json_ld_data:
+            structured_data['json_ld'].extend(json_ld_data)
+            structured_data['extraction_methods'].append('page_json_ld')
+        
+        # Priority 3: Microdata
+        microdata = self.extract_microdata(soup)
+        if microdata:
+            structured_data['microdata'] = microdata
+            structured_data['extraction_methods'].append('microdata')
+        
+        # Priority 4: Meta tags and OpenGraph
+        structured_data['meta_tags'] = self.extract_meta_tags(soup)
+        structured_data['opengraph'] = self.extract_opengraph(soup)
+        if structured_data['meta_tags'] or structured_data['opengraph']:
+            structured_data['extraction_methods'].append('meta_tags')
+        
+        # Priority 5: Intelligent fallback parsing
+        fallback_data = self.intelligent_fallback_parse(soup)
+        if fallback_data:
+            structured_data.update(fallback_data)
+            structured_data['extraction_methods'].append('intelligent_fallback')
+        
+        return structured_data
+    
+    def extract_json_ld(self, soup: BeautifulSoup) -> List[Dict]:
+        """Extract JSON-LD structured data"""
+        json_ld_data = []
+        
+        # Find all JSON-LD script tags
+        for script in soup.find_all('script', type='application/ld+json'):
+            if script.string:
+                try:
+                    data = json.loads(script.string.strip())
+                    
+                    # Handle both list and dict formats for JSON-LD
+                    if isinstance(data, list):
+                        json_ld_data.extend(data)
+                        logger.debug(f"Found JSON-LD array with {len(data)} items")
+                    elif isinstance(data, dict):
+                        json_ld_data.append(data)
+                        logger.debug(f"Found JSON-LD data: {data.get('@type', 'Unknown type')}")
+                    else:
+                        logger.warning(f"Unexpected JSON-LD data type: {type(data)}")
+                        
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to parse JSON-LD: {e}")
+        
+        return json_ld_data
+    
+    def extract_microdata(self, soup: BeautifulSoup) -> List[Dict]:
+        """Extract Microdata structured data"""
+        microdata_items = []
+        
+        # Find all elements with itemscope
+        for item in soup.find_all(attrs={'itemscope': True}):
+            item_data = {
+                'type': item.get('itemtype', ''),
+                'properties': {}
+            }
+            
+            # Extract properties
+            for prop in item.find_all(attrs={'itemprop': True}):
+                prop_name = prop.get('itemprop')
+                prop_value = None
+                
+                # Get value based on element type
+                if prop.name in ['meta']:
+                    prop_value = prop.get('content')
+                elif prop.name in ['img']:
+                    prop_value = prop.get('src')
+                elif prop.name in ['a', 'link']:
+                    prop_value = prop.get('href')
+                elif prop.name in ['time']:
+                    prop_value = prop.get('datetime') or prop.get_text(strip=True)
+                else:
+                    prop_value = prop.get_text(strip=True)
+                
+                if prop_value:
+                    if prop_name in item_data['properties']:
+                        # Handle multiple values
+                        if not isinstance(item_data['properties'][prop_name], list):
+                            item_data['properties'][prop_name] = [item_data['properties'][prop_name]]
+                        item_data['properties'][prop_name].append(prop_value)
+                    else:
+                        item_data['properties'][prop_name] = prop_value
+            
+            if item_data['properties']:
+                microdata_items.append(item_data)
+        
+        return microdata_items
+    
+    def extract_meta_tags(self, soup: BeautifulSoup) -> Dict:
+        """Extract relevant meta tags"""
+        meta_data = {}
+        
+        # Extract specific meta tags
+        meta_tags = [
+            'description', 'keywords', 'author', 'title'
+        ]
+        
+        for tag_name in meta_tags:
+            meta_tag = soup.find('meta', attrs={'name': tag_name})
+            if meta_tag and meta_tag.get('content'):
+                meta_data[tag_name] = meta_tag.get('content')
+        
+        return meta_data
+    
+    def extract_opengraph(self, soup: BeautifulSoup) -> Dict:
+        """Extract OpenGraph data"""
+        og_data = {}
+        
+        for meta in soup.find_all('meta', attrs={'property': lambda x: x and x.startswith('og:')}):
+            property_name = meta.get('property')
+            content = meta.get('content')
+            if property_name and content:
+                # Remove 'og:' prefix and use as key
+                key = property_name[3:]
+                og_data[key] = content
+        
+        return og_data
+    
+    def intelligent_fallback_parse(self, soup: BeautifulSoup) -> Dict:
+        """Intelligent fallback parsing using common patterns"""
+        fallback_data = {
+            'menu_items': [],
+            'products': [],
+            'organization': {}
+        }
+        
+        # Common selectors for menu items and products
+        product_selectors = [
+            '[class*="product"]',
+            '[class*="item"]',
+            '[class*="menu-item"]',
+            '[data-product]',
+            '[itemtype*="Product"]'
+        ]
+        
+        for selector in product_selectors:
+            elements = soup.select(selector)
+            for element in elements:
+                product_data = self.extract_product_from_element(element)
+                if product_data:
+                    fallback_data['products'].append(product_data)
+        
+        # Extract organization information
+        org_data = self.extract_organization_info(soup)
+        if org_data:
+            fallback_data['organization'] = org_data
+        
+        return fallback_data
+    
+    def extract_product_from_element(self, element) -> Optional[Dict]:
+        """Extract product information from a DOM element"""
+        product = {}
+        
+        # Try to find name
+        name_selectors = [
+            '[class*="name"]', '[class*="title"]', 'h1', 'h2', 'h3',
+            '[data-name]', '[itemprop="name"]'
+        ]
+        
+        for selector in name_selectors:
+            name_elem = element.select_one(selector)
+            if name_elem:
+                product['name'] = name_elem.get_text(strip=True)
+                break
+        
+        # Try to find price
+        price_selectors = [
+            '[class*="price"]', '[data-price]', '[itemprop="price"]',
+            'span:contains("$")', 'div:contains("$")'
+        ]
+        
+        for selector in price_selectors:
+            price_elem = element.select_one(selector)
+            if price_elem:
+                price_text = price_elem.get_text(strip=True)
+                # Extract price with regex
+                price_match = re.search(r'\$?(\d+\.?\d*)', price_text)
+                if price_match:
+                    product['price'] = float(price_match.group(1))
+                    product['currency'] = 'USD'  # Default assumption
+                break
+        
+        # Try to find description
+        desc_selectors = [
+            '[class*="description"]', '[class*="desc"]', 'p',
+            '[data-description]', '[itemprop="description"]'
+        ]
+        
+        for selector in desc_selectors:
+            desc_elem = element.select_one(selector)
+            if desc_elem:
+                desc_text = desc_elem.get_text(strip=True)
+                if len(desc_text) > 20:  # Reasonable description length
+                    product['description'] = desc_text
+                    break
+        
+        # Only return if we found at least a name
+        return product if product.get('name') else None
+    
+    def extract_organization_info(self, soup: BeautifulSoup) -> Dict:
+        """Extract organization/business information"""
+        org_info = {}
+        
+        # Try to find business name
+        title_tag = soup.find('title')
+        if title_tag:
+            org_info['name'] = title_tag.get_text(strip=True)
+        
+        # Look for contact information
+        contact_selectors = [
+            '[class*="contact"]', '[class*="address"]', '[class*="phone"]',
+            '[itemprop="address"]', '[itemprop="telephone"]'
+        ]
+        
+        for selector in contact_selectors:
+            elements = soup.select(selector)
+            for elem in elements:
+                text = elem.get_text(strip=True)
+                if 'phone' in selector.lower() or re.search(r'\d{3}[-.]?\d{3}[-.]?\d{4}', text):
+                    org_info['telephone'] = text
+                elif 'address' in selector.lower() and len(text) > 10:
+                    org_info['address'] = text
+        
+        return org_info
 
 class WebCrawler:
     def __init__(self, config: CrawlConfig = None):
@@ -52,6 +432,397 @@ class WebCrawler:
         
         # Track URLs that returned redirects to avoid duplicate processing
         self.redirect_cache = {}
+        
+        # Initialize dynamic content renderer
+        self.dynamic_renderer = None
+        self.structured_data_extractor = StructuredDataExtractor(self.config)
+    
+    def detect_js_dependency(self, html_content: str, url: str = "") -> bool:
+        """
+        Detect if a page requires JavaScript rendering using industry best practices.
+        
+        Uses a weighted scoring system with multiple detection methods to minimize false positives.
+        Based on research from web.dev, MDN, and real-world SPA detection patterns.
+        """
+        if not html_content:
+            return False
+        
+        soup = BeautifulSoup(html_content, 'html.parser')
+        
+        # Initialize scoring
+        js_score = 0
+        max_score = 100
+        evidence = []
+        
+        # === STRONG INDICATORS (High confidence, high weight) ===
+        
+        # 1. Explicit noscript messages indicating JS requirement (Weight: 40)
+        noscript_indicators = self._check_noscript_indicators(soup)
+        if noscript_indicators['is_js_required']:
+            js_score += 40
+            evidence.append(f"Strong noscript indicator: {noscript_indicators['message']}")
+        
+        # 2. Minimal meaningful content with high JS/CSS ratio (Weight: 35)
+        content_analysis = self._analyze_content_structure(soup)
+        if content_analysis['is_minimal_content']:
+            js_score += 35
+            evidence.append(f"Minimal content: {content_analysis['reason']}")
+        
+        # === MEDIUM INDICATORS (Medium confidence, medium weight) ===
+        
+        # 3. SPA framework detection (Weight: 25)
+        framework_detection = self._detect_spa_frameworks(soup)
+        if framework_detection['has_spa_framework']:
+            js_score += 25
+            evidence.append(f"SPA framework detected: {framework_detection['frameworks']}")
+        
+        # 4. SPA root elements and patterns (Weight: 20)
+        spa_patterns = self._check_spa_patterns(soup)
+        if spa_patterns['has_spa_root']:
+            js_score += 20
+            evidence.append(f"SPA root pattern: {spa_patterns['pattern']}")
+        
+        # 5. Dynamic loading indicators (Weight: 15)
+        loading_indicators = self._check_loading_indicators(soup)
+        if loading_indicators['has_loading_indicators']:
+            js_score += 15
+            evidence.append(f"Loading indicators: {loading_indicators['types']}")
+        
+        # === WEAK INDICATORS (Lower confidence, used for fine-tuning) ===
+        
+        # 6. Client-side routing patterns (Weight: 10)
+        routing_patterns = self._check_client_routing_patterns(soup)
+        if routing_patterns['has_client_routing']:
+            js_score += 10
+            evidence.append(f"Client routing: {routing_patterns['evidence']}")
+        
+        # 7. Heavy JavaScript presence (Weight: 8)
+        js_analysis = self._analyze_javascript_presence(soup)
+        if js_analysis['is_js_heavy']:
+            js_score += 8
+            evidence.append(f"Heavy JS: {js_analysis['reason']}")
+        
+        # === NEGATIVE INDICATORS (Reduce score for static site patterns) ===
+        
+        # Static site indicators reduce the score
+        static_indicators = self._check_static_site_indicators(soup)
+        if static_indicators['has_static_patterns']:
+            js_score -= static_indicators['reduction']
+            evidence.append(f"Static patterns detected: -{static_indicators['reduction']} points")
+        
+        # === DECISION LOGIC ===
+        
+        # Use configurable thresholds
+        min_score = self.config.js_detection_min_score
+        conservative_score = self.config.js_detection_conservative_score
+        
+        is_js_dependent = False
+        confidence = "low"
+        
+        # Strict mode requires higher confidence
+        if self.config.js_detection_strict_mode:
+            min_score += 15  # Raise threshold in strict mode
+        
+        if js_score >= min_score:
+            is_js_dependent = True
+            confidence = "high" if js_score >= min_score + 15 else "medium"
+        elif js_score >= conservative_score and any("Strong noscript" in ev or "Minimal content" in ev for ev in evidence):
+            is_js_dependent = True
+            confidence = "medium"
+        elif js_score >= 70:  # Very high score override
+            is_js_dependent = True
+            confidence = "very_high"
+        
+        if self.config.verbose_logging:
+            logger.info(f"JS dependency analysis for {url}:")
+            # logger.info(f"  Score: {js_score}/{max_score}")
+            # logger.info(f"  Threshold: {min_score}")
+            # logger.info(f"  Confidence: {confidence}")
+            # logger.info(f"  Final Decision: {'JS-dependent' if is_js_dependent else 'Static'}")
+            # logger.info(f"  Evidence: {evidence}")
+        
+        return is_js_dependent
+    
+    def _check_noscript_indicators(self, soup: BeautifulSoup) -> Dict:
+        """Check for explicit noscript messages indicating JS requirement"""
+        result = {'is_js_required': False, 'message': ''}
+        
+        for noscript in soup.find_all('noscript'):
+            text = noscript.get_text().lower()
+            
+            # Strong indicators
+            strong_phrases = [
+                'javascript is required',
+                'enable javascript',
+                'this site requires javascript',
+                'javascript must be enabled',
+                'turn on javascript',
+                'javascript disabled',
+                'js is disabled'
+            ]
+            
+            for phrase in strong_phrases:
+                if phrase in text:
+                    result['is_js_required'] = True
+                    result['message'] = phrase
+                    return result
+        
+        return result
+    
+    def _analyze_content_structure(self, soup: BeautifulSoup) -> Dict:
+        """Analyze content structure to detect minimal/empty pages"""
+        result = {'is_minimal_content': False, 'reason': ''}
+        
+        # Create a copy to avoid modifying original
+        content_soup = BeautifulSoup(str(soup), 'html.parser')
+        
+        # Remove non-content elements
+        for element in content_soup(['script', 'style', 'meta', 'link', 'title', 'noscript']):
+            element.decompose()
+        
+        # Get body content
+        body = content_soup.find('body')
+        if not body:
+            result = {'is_minimal_content': True, 'reason': 'No body element found'}
+            return result
+        
+        # Extract text content
+        text_content = body.get_text(strip=True)
+        
+        # Count meaningful content
+        words = text_content.split()
+        word_count = len(words)
+        
+        # Check for minimal content patterns
+        if word_count < 10:
+            result = {'is_minimal_content': True, 'reason': f'Very few words ({word_count})'}
+        elif word_count < 30:
+            # Additional checks for edge cases
+            html_size = len(str(body))
+            content_ratio = len(text_content) / html_size if html_size > 0 else 0
+            
+            if content_ratio < 0.05:  # Less than 5% text content
+                result = {'is_minimal_content': True, 'reason': f'Low content ratio ({content_ratio:.2%})'}
+        
+        # Check for empty containers that might be populated by JS
+        # This check is now more conservative. Only trigger if overall word count is also low.
+        if word_count < 100:
+            empty_containers = body.find_all(['div', 'main', 'section'], class_=re.compile(r'(app|root|container|content)'))
+            if empty_containers:
+                for container in empty_containers:
+                    container_text = container.get_text(strip=True)
+                    if not container_text and len(container.find_all()) < 3:  # Empty with few child elements
+                        result = {'is_minimal_content': True, 'reason': 'Empty main containers detected on a low-content page'}
+                        break
+        
+        return result
+    
+    def _detect_spa_frameworks(self, soup: BeautifulSoup) -> Dict:
+        """Detect Single Page Application frameworks"""
+        result = {'has_spa_framework': False, 'frameworks': []}
+        
+        # Check script sources for framework libraries
+        framework_patterns = {
+            'react': ['react.js', 'react.min.js', 'react.development.js', 'react.production.js'],
+            'vue': ['vue.js', 'vue.min.js', 'vue.esm.js'],
+            'angular': ['angular.js', 'angular.min.js', '@angular/', 'ng.js'],
+            'ember': ['ember.js', 'ember.min.js', 'ember.prod.js'],
+            'svelte': ['svelte.js', 'svelte-kit'],
+            'next': ['next.js', '_next/'],
+            'nuxt': ['nuxt.js', '_nuxt/'],
+            'gatsby': ['gatsby-'],
+        }
+        
+        scripts = soup.find_all('script', src=True)
+        for script in scripts:
+            src = script.get('src', '').lower()
+            for framework, patterns in framework_patterns.items():
+                if any(pattern in src for pattern in patterns):
+                    result['frameworks'].append(framework)
+        
+        # Check for framework-specific meta tags
+        meta_indicators = {
+            'next': soup.find('meta', attrs={'name': 'next-head-count'}),
+            'nuxt': soup.find('meta', attrs={'name': 'nuxt-ssr'}),
+            'gatsby': soup.find('meta', attrs={'name': 'generator', 'content': re.compile(r'gatsby', re.I)}),
+        }
+        
+        for framework, meta in meta_indicators.items():
+            if meta and framework not in result['frameworks']:
+                result['frameworks'].append(framework)
+        
+        # Check for framework-specific code patterns
+        script_content = ' '.join(script.get_text() for script in soup.find_all('script') if script.get_text())
+        if script_content:
+            code_patterns = {
+                'react': ['React.render', 'ReactDOM.render', 'React.createElement'],
+                'vue': ['new Vue(', 'Vue.createApp'],
+                'angular': ['angular.module', 'ng-app'],
+            }
+            
+            for framework, patterns in code_patterns.items():
+                if any(pattern in script_content for pattern in patterns) and framework not in result['frameworks']:
+                    result['frameworks'].append(framework)
+        
+        result['has_spa_framework'] = len(result['frameworks']) > 0
+        return result
+    
+    def _check_spa_patterns(self, soup: BeautifulSoup) -> Dict:
+        """Check for SPA-specific DOM patterns"""
+        result = {'has_spa_root': False, 'pattern': ''}
+        
+        # Common SPA root element patterns
+        spa_root_patterns = [
+            {'tag': 'div', 'id': re.compile(r'^(app|root|spa-root|react-root|__next)$')},
+            {'tag': 'div', 'class': re.compile(r'(^|\s)(app|application|spa-root)(\s|$)')},
+            {'tag': 'main', 'id': re.compile(r'^(app|main-app)$')},
+        ]
+        
+        for pattern in spa_root_patterns:
+            element = soup.find(pattern['tag'], pattern.get('id') or pattern.get('class'))
+            if element:
+                # Check if this element has minimal content but many data attributes or classes
+                text_content = element.get_text(strip=True)
+                child_count = len(element.find_all())
+                
+                if len(text_content) < 50 and (child_count < 5 or element.get('data-reactroot')):
+                    result['has_spa_root'] = True
+                    result['pattern'] = f"{pattern['tag']} with {pattern.get('id') or pattern.get('class')}"
+                    break
+        
+        return result
+    
+    def _check_loading_indicators(self, soup: BeautifulSoup) -> Dict:
+        """Check for loading indicators that suggest dynamic content"""
+        result = {'has_loading_indicators': False, 'types': []}
+        
+        # Loading-related class patterns
+        loading_patterns = [
+            r'loading',
+            r'spinner',
+            r'skeleton',
+            r'placeholder',
+            r'lazy-load',
+            r'shimmer'
+        ]
+        
+        for pattern in loading_patterns:
+            elements = soup.find_all(attrs={'class': re.compile(pattern, re.I)})
+            if elements:
+                result['types'].append(pattern)
+        
+        # Loading-related text content
+        loading_texts = ['loading...', 'please wait', 'fetching data']
+        page_text = soup.get_text().lower()
+        for text in loading_texts:
+            if text in page_text:
+                result['types'].append(f"text: {text}")
+        
+        result['has_loading_indicators'] = len(result['types']) > 0
+        return result
+    
+    def _check_client_routing_patterns(self, soup: BeautifulSoup) -> Dict:
+        """Check for client-side routing patterns"""
+        result = {'has_client_routing': False, 'evidence': []}
+        
+        # Check for hash-based routing patterns
+        links = soup.find_all('a', href=True)
+        hash_routes = [link['href'] for link in links if link['href'].startswith('#/')]
+        if hash_routes:
+            result['evidence'].append(f"Hash routes: {len(hash_routes)} found")
+        
+        # Check for data-router attributes
+        router_attrs = soup.find_all(attrs={'data-router': True}) or soup.find_all(attrs={'data-route': True})
+        if router_attrs:
+            result['evidence'].append(f"Router attributes: {len(router_attrs)} found")
+        
+        # Check for pushState usage in scripts
+        scripts = soup.find_all('script')
+        for script in scripts:
+            if script.get_text() and 'pushState' in script.get_text():
+                result['evidence'].append("pushState detected in scripts")
+                break
+        
+        result['has_client_routing'] = len(result['evidence']) > 0
+        return result
+    
+    def _analyze_javascript_presence(self, soup: BeautifulSoup) -> Dict:
+        """Analyze the amount and type of JavaScript present"""
+        result = {'is_js_heavy': False, 'reason': ''}
+        
+        scripts = soup.find_all('script')
+        if not scripts:
+            return result
+        
+        # Count external scripts
+        external_scripts = [s for s in scripts if s.get('src')]
+        inline_scripts = [s for s in scripts if s.get_text() and not s.get('src')]
+        
+        # Calculate rough JavaScript size
+        total_js_size = sum(len(s.get_text()) for s in inline_scripts)
+        
+        # Heavy JS indicators
+        if len(external_scripts) > 10:
+            result = {'is_js_heavy': True, 'reason': f'{len(external_scripts)} external scripts'}
+        elif total_js_size > 50000:  # 50KB of inline JS
+            result = {'is_js_heavy': True, 'reason': f'{total_js_size} bytes inline JS'}
+        elif len(inline_scripts) > 5 and total_js_size > 10000:
+            result = {'is_js_heavy': True, 'reason': f'{len(inline_scripts)} inline scripts, {total_js_size} bytes'}
+        
+        return result
+    
+    def _check_static_site_indicators(self, soup: BeautifulSoup) -> Dict:
+        """Check for patterns that indicate a static site"""
+        result = {'has_static_patterns': False, 'reduction': 0}
+        
+        static_patterns = []
+        
+        # Rich content indicators
+        content_elements = soup.find_all(['article', 'main', 'section'])
+        rich_content = any(len(elem.get_text(strip=True)) > 200 for elem in content_elements)
+        if rich_content:
+            static_patterns.append("Rich content present")
+            result['reduction'] += 15
+        
+        # Traditional navigation patterns
+        nav_elements = soup.find_all(['nav', 'ul', 'ol'])
+        traditional_nav = any(len(nav.find_all('a')) > 3 for nav in nav_elements)
+        if traditional_nav:
+            static_patterns.append("Traditional navigation")
+            result['reduction'] += 10
+        
+        # Form presence (often indicates server-side processing)
+        forms = soup.find_all('form')
+        if forms:
+            static_patterns.append("Forms present")
+            result['reduction'] += 5
+        
+        # Meta description/keywords (typical of static sites)
+        meta_desc = soup.find('meta', attrs={'name': 'description'})
+        if meta_desc and len(meta_desc.get('content', '')) > 50:
+            static_patterns.append("Rich meta description")
+            result['reduction'] += 5
+        
+        result['has_static_patterns'] = len(static_patterns) > 0
+        return result
+    
+    def _calculate_content_ratio(self, soup: BeautifulSoup) -> float:
+        """Calculate ratio of text content to HTML markup"""
+        # Remove script and style content
+        for element in soup(['script', 'style', 'meta', 'link']):
+            element.decompose()
+        
+        text_content = soup.get_text()
+        html_content = str(soup)
+        
+        if not html_content:
+            return 0.0
+        
+        # Calculate ratio of meaningful text to total HTML
+        text_length = len(text_content.strip())
+        html_length = len(html_content)
+        
+        return text_length / html_length if html_length > 0 else 0.0
         
     def _normalize_url(self, url: str) -> str:
         """Normalize URL by removing fragments, sorting query parameters, etc."""
@@ -865,10 +1636,64 @@ class WebCrawler:
         return text
     
     def _fetch_page(self, url: str) -> Optional[Dict]:
-        """Fetch a single page and extract content with enhanced error handling"""
+        """Fetch a single page and extract content with enhanced error handling and dynamic rendering"""
         try:
             logger.info(f"Fetching: {url}")
             
+            # First, try static fetching
+            static_result = self._fetch_static_content(url)
+            
+            if not static_result:
+                return None
+            
+            # Check if dynamic rendering is needed
+            needs_js = False
+            if self.config.enable_dynamic_rendering:
+                needs_js = self.detect_js_dependency(static_result['html_content'], url)
+                
+                if needs_js:
+                    logger.info(f"JavaScript dependency detected for {url}, using dynamic rendering")
+                    dynamic_result = self._fetch_dynamic_content(url)
+                    if dynamic_result:
+                        # Merge dynamic content with static metadata
+                        static_result.update(dynamic_result)
+                        static_result['rendering_method'] = 'dynamic'
+                    else:
+                        # Fallback to static if dynamic fails
+                        logger.warning(f"Dynamic rendering failed for {url}, using static content")
+                        static_result['rendering_method'] = 'static_fallback'
+                else:
+                    static_result['rendering_method'] = 'static'
+            else:
+                static_result['rendering_method'] = 'static'
+            
+            # Extract structured data
+            soup = BeautifulSoup(static_result['html_content'], 'html.parser')
+            intercepted_json_ld = static_result.get('intercepted_json_ld', [])
+            
+            if self.config.prioritize_structured_data:
+                structured_data = self.structured_data_extractor.extract_structured_data(
+                    soup, intercepted_json_ld
+                )
+                static_result['structured_data'] = structured_data
+            
+            # Extract enhanced links from rendered content
+            enhanced_links = self._extract_links(soup, static_result['url'], static_result.get('response_headers', {}))
+            static_result['links'] = enhanced_links
+            
+            # Extract clean text from rendered content
+            clean_text = self._clean_html_content(soup)
+            static_result['clean_text'] = clean_text
+            
+            return static_result
+            
+        except Exception as e:
+            logger.error(f"Unexpected error processing {url}: {e}")
+            return None
+    
+    def _fetch_static_content(self, url: str) -> Optional[Dict]:
+        """Fetch static HTML content using requests"""
+        try:
             # Handle redirects if configured
             if self.config.follow_redirects:
                 response = self.session.get(url, timeout=self.config.timeout, allow_redirects=True)
@@ -892,18 +1717,12 @@ class WebCrawler:
             if not response.content:
                 logger.warning(f"Empty response from {url}")
                 return None
-                
+            
             soup = BeautifulSoup(response.content, 'html.parser')
             
             # Extract title
             title = soup.find('title')
             title_text = title.get_text().strip() if title else ""
-            
-            # Extract links with response headers
-            links = self._extract_links(soup, url, dict(response.headers))
-            
-            # Clean HTML content
-            clean_text = self._clean_html_content(soup)
             
             # Get final URL (after redirects)
             final_url = response.url if hasattr(response, 'url') else url
@@ -913,8 +1732,6 @@ class WebCrawler:
                 'original_url': url if final_url != url else None,
                 'title': title_text,
                 'html_content': str(soup),
-                'clean_text': clean_text,
-                'links': links,
                 'status_code': response.status_code,
                 'content_type': content_type,
                 'response_headers': dict(response.headers)
@@ -924,8 +1741,35 @@ class WebCrawler:
             logger.error(f"Error fetching {url}: {e}")
             return None
         except Exception as e:
-            logger.error(f"Unexpected error processing {url}: {e}")
+            logger.error(f"Unexpected error in static fetch for {url}: {e}")
             return None
+    
+    def _fetch_dynamic_content(self, url: str) -> Optional[Dict]:
+        """Fetch content using dynamic rendering"""
+        if not self.dynamic_renderer:
+            # Initialize renderer for this crawl session
+            self.dynamic_renderer = DynamicContentRenderer(self.config)
+        
+        try:
+            with self.dynamic_renderer as renderer:
+                dynamic_result = renderer.get_dynamic_content(url)
+                if dynamic_result:
+                    # Parse the rendered HTML to extract title
+                    soup = BeautifulSoup(dynamic_result['html_content'], 'html.parser')
+                    title = soup.find('title')
+                    title_text = title.get_text().strip() if title else ""
+                    
+                    return {
+                        'html_content': dynamic_result['html_content'],
+                        'url': dynamic_result['final_url'],
+                        'title': title_text,
+                        'intercepted_json_ld': dynamic_result.get('intercepted_json_ld', [])
+                    }
+        except Exception as e:
+            logger.error(f"Error in dynamic content fetching for {url}: {e}")
+            return None
+        
+        return None
     
     def crawl_website(self, start_url: str) -> Dict:
         """
@@ -1079,8 +1923,14 @@ class WebCrawler:
         return relevant_pages
     
     def close(self):
-        """Close the session"""
+        """Close the session and dynamic renderer"""
         self.session.close()
+        if self.dynamic_renderer:
+            try:
+                # Dynamic renderer cleanup is handled by context manager
+                pass
+            except Exception as e:
+                logger.warning(f"Error closing dynamic renderer: {e}")
 
     def discover_links_only(self, start_url: str) -> Dict:
         """
@@ -1364,7 +2214,7 @@ class WebCrawler:
 
 
 def create_coffee_crawler(max_pages: int = 100, verbose: bool = False, aggressive: bool = True) -> WebCrawler:
-    """Create a crawler optimized for coffee shop websites with enhanced link discovery"""
+    """Create a crawler optimized for coffee shop websites with enhanced link discovery and dynamic rendering"""
     if aggressive:
         config = CrawlConfig(
             max_pages=max_pages,
@@ -1379,6 +2229,11 @@ def create_coffee_crawler(max_pages: int = 100, verbose: bool = False, aggressiv
             follow_redirects=True,
             normalize_urls=True,
             verbose_logging=verbose,
+            # Enhanced dynamic rendering options
+            enable_dynamic_rendering=True,
+            prioritize_structured_data=True,
+            wait_for_network_idle=True,
+            js_detection_threshold=0.1,
         )
     else:
         config = CrawlConfig(
@@ -1394,5 +2249,10 @@ def create_coffee_crawler(max_pages: int = 100, verbose: bool = False, aggressiv
             follow_redirects=True,
             normalize_urls=True,
             verbose_logging=verbose,
+            # Conservative dynamic rendering
+            enable_dynamic_rendering=True,
+            prioritize_structured_data=False,
+            wait_for_network_idle=False,
+            js_detection_threshold=0.05,
         )
     return WebCrawler(config) 

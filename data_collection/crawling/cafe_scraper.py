@@ -20,7 +20,7 @@ class CafeScraper:
     Saves raw HTML files from each crawled page
     """
     
-    def __init__(self, max_pages: int = 200, verbose: bool = True, aggressive_crawling: bool = True):
+    def __init__(self, max_pages: int = 200, verbose: bool = True, aggressive_crawling: bool = True, enable_dynamic_rendering: bool = True, delay: float = 0.8, config: Optional[CrawlConfig] = None):
         """
         Initialize the cafe scraper
         
@@ -28,12 +28,18 @@ class CafeScraper:
             max_pages: Maximum number of pages to crawl (default: 200)
             verbose: Enable verbose logging to see what's happening (default: True)
             aggressive_crawling: Use more aggressive settings for better coverage (default: True)
+            enable_dynamic_rendering: Enable JavaScript rendering for SPA sites (default: True)
+            delay: Delay between requests in seconds (default: 0.8)
+            config: Optional custom CrawlConfig object with advanced settings
         """
-        if aggressive_crawling:
+        # Use provided config or create one based on other parameters
+        if config is not None:
+            self.crawler = WebCrawler(config)
+        elif aggressive_crawling:
             # Create custom config for more thorough crawling
-            config = CrawlConfig(
+            crawl_config = CrawlConfig(
                 max_pages=max_pages,
-                delay_between_requests=0.8,  # Faster crawling
+                delay_between_requests=delay,
                 max_workers=5,  # More concurrent workers
                 follow_external_links=False,  # Stay on same domain
                 extract_js_links=True,  # Extract JavaScript links
@@ -45,14 +51,26 @@ class CafeScraper:
                 normalize_urls=False,  # Normalize URLs to avoid duplicates
                 verbose_logging=verbose,
                 timeout=45,  # Longer timeout for slow sites
+                # Enhanced dynamic rendering options
+                enable_dynamic_rendering=enable_dynamic_rendering,
+                prioritize_structured_data=True,
+                wait_for_network_idle=True,
+                js_detection_threshold=0.1,  # Deprecated but kept for compatibility
+                playwright_timeout=30000,
+                # New advanced JS detection settings
+                js_detection_strict_mode=False,  # Standard detection
+                js_detection_min_score=45,  # Balanced threshold
+                js_detection_conservative_score=30,
             )
             # Relax URL restrictions for better coverage
-            config.blocked_extensions = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.css', '.js', '.xml', '.zip', '.doc', '.docx', '.svg', '.ico', '.mp4', '.mp3', '.wav'}
-            config.allowed_extensions = {'.html', '.htm', '.php', '.asp', '.aspx', '.jsp', '.cfm', ''}  # Added more web formats
+            crawl_config.blocked_extensions = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.css', '.js', '.xml', '.zip', '.doc', '.docx', '.svg', '.ico', '.mp4', '.mp3', '.wav'}
+            crawl_config.allowed_extensions = {'.html', '.htm', '.php', '.asp', '.aspx', '.jsp', '.cfm', ''}  # Added more web formats
             
-            self.crawler = WebCrawler(config)
+            self.crawler = WebCrawler(crawl_config)
         else:
             self.crawler = create_coffee_crawler(max_pages=max_pages, verbose=verbose, aggressive=False)
+            # Override dynamic rendering setting
+            self.crawler.config.enable_dynamic_rendering = enable_dynamic_rendering
         
         self.verbose = verbose
         
@@ -82,6 +100,12 @@ class CafeScraper:
             logger.info(f"  - Follow redirects: {self.crawler.config.follow_redirects}")
             logger.info(f"  - Normalize URLs: {self.crawler.config.normalize_urls}")
             logger.info(f"  - Follow external links: {self.crawler.config.follow_external_links}")
+            logger.info(f"  - Dynamic rendering: {self.crawler.config.enable_dynamic_rendering}")
+            logger.info(f"  - Prioritize structured data: {self.crawler.config.prioritize_structured_data}")
+            logger.info(f"  - JS detection threshold: {self.crawler.config.js_detection_threshold} (deprecated)")
+            logger.info(f"  - JS detection strict mode: {self.crawler.config.js_detection_strict_mode}")
+            logger.info(f"  - JS detection min score: {self.crawler.config.js_detection_min_score}")
+            logger.info(f"  - JS detection conservative score: {self.crawler.config.js_detection_conservative_score}")
         
         try:
             # Step 1: Crawl the website
@@ -164,6 +188,20 @@ class CafeScraper:
             logger.info(f"  - Microdata link extraction: {'✓' if self.crawler.config.extract_microdata_links else '✗'}")
             logger.info(f"  - URL normalization: {'✓' if self.crawler.config.normalize_urls else '✗'}")
             logger.info(f"  - Redirect following: {'✓' if self.crawler.config.follow_redirects else '✗'}")
+            logger.info(f"  - Dynamic rendering: {'✓' if self.crawler.config.enable_dynamic_rendering else '✗'}")
+            logger.info(f"  - Structured data priority: {'✓' if self.crawler.config.prioritize_structured_data else '✗'}")
+            
+            # Show rendering method statistics if available
+            rendering_stats = {}
+            for page in pages:
+                method = page.get('rendering_method', 'unknown')
+                rendering_stats[method] = rendering_stats.get(method, 0) + 1
+            
+            if rendering_stats:
+                logger.info(f"\nRENDERING METHOD BREAKDOWN:")
+                for method, count in rendering_stats.items():
+                    percentage = (count / len(pages)) * 100
+                    logger.info(f"  - {method}: {count} pages ({percentage:.1f}%)")
         
         # Show which URLs were crawled
         logger.info(f"\nCRAWLED PAGES:")
@@ -702,7 +740,7 @@ class CafeScraper:
             raise
 
 
-def quick_scrape(url: str, output_dir: Optional[str] = None, max_pages: int = 200, verbose: bool = True) -> Dict[str, Any]:
+def quick_scrape(url: str, output_dir: Optional[str] = None, max_pages: int = 200, verbose: bool = True, enable_dynamic_rendering: bool = True) -> Dict[str, Any]:
     """
     Quick utility function to scrape a cafe website and save HTML files
     
@@ -711,12 +749,18 @@ def quick_scrape(url: str, output_dir: Optional[str] = None, max_pages: int = 20
         output_dir: Directory to save HTML files
         max_pages: Maximum number of pages to crawl (default: 200)
         verbose: Enable verbose logging (default: True)
+        enable_dynamic_rendering: Enable JavaScript rendering for SPA sites (default: True)
         
     Returns:
         Dictionary with scraping results
     """
     # Create scraper and run
-    scraper = CafeScraper(max_pages=max_pages, verbose=verbose, aggressive_crawling=True)
+    scraper = CafeScraper(
+        max_pages=max_pages, 
+        verbose=verbose, 
+        aggressive_crawling=True,
+        enable_dynamic_rendering=enable_dynamic_rendering
+    )
     result = scraper.scrape_cafe_website(url, output_dir)
     scraper.print_summary(result)
     
@@ -757,12 +801,22 @@ if __name__ == "__main__":
         print("        ├── 001_page.html")
         print("        └── scraping_summary.json")
         print("")
+        print("Features:")
+        print("  ✓ Dynamic JavaScript rendering (Playwright)")
+        print("  ✓ Structured data extraction (JSON-LD, Microdata)")
+        print("  ✓ Intelligent SPA detection")
+        print("  ✓ Advanced link discovery (10+ methods)")
+        print("  ✓ Rate limiting and respectful crawling")
+        print("")
         print("Options:")
         print("  discover - Phase 1: Find all links and save to crawled_links/{site_name}.json")
         print("  preview  - Preview links file and show statistics")
         print("  scrape   - Phase 2: Scrape HTML from links with status='keep'")
         print("  max_pages - Maximum pages to scan during discovery (default: 200)")
         print("  status_filter - Only scrape links with this status (default: 'keep')")
+        print("")
+        print("Requirements for dynamic rendering:")
+        print("  pip install playwright && playwright install")
         sys.exit(1)
     
     command = sys.argv[1].lower()
