@@ -1,6 +1,22 @@
 {
   "source_file": "000_lacolombe.com_products_strawberry-mocha-draft-latte.html",
-  "processed_at": "2025-06-26T16:33:32.032571",
-  "coffee_beans": [],
-  "beans_found": 0
+  "processed_at": "2025-06-27T12:10:18.828613",
+  "coffee_beans": [
+    {
+      "name": "Strawberry Mocha Draft Latte",
+      "weight": "9 oz",
+      "price": 34.0,
+      "producer": "La Colombe Coffee Roasters",
+      "region": "Colombia",
+      "roast_level": "MEDIUM",
+      "flavor_notes": [
+        "strawberry",
+        "chocolate",
+        "mocha"
+      ],
+      "grind_type": "WHOLE_BEAN",
+      "bean_type": "ARABICA"
+    }
+  ],
+  "beans_found": 1
 }

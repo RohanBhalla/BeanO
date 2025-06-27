@@ -1,16 +1,24 @@
 {
   "source_file": "002_lacolombe.com_products_single-origin-pack.html",
-  "processed_at": "2025-06-26T16:33:33.423492",
+  "processed_at": "2025-06-27T12:10:22.868541",
   "coffee_beans": [
     {
       "name": "Single Origin Pack",
       "weight": "12 oz",
-      "price": "$39.00",
-      "roast_level": "MEDIUM_DARK",
+      "price": 39.0,
+      "producer": "La Colombe",
+      "region": "Brazil, Colombia",
+      "roast_level": "MEDIUM",
       "flavor_notes": [
         "Chocolatey",
         "Nutty",
-        "Sweet"
+        "Sweet",
+        "Milk Chocolate",
+        "Cashew",
+        "Brown Sugar",
+        "Clementines",
+        "Cherry Cola",
+        "Chocolate"
       ],
       "grind_type": "WHOLE_BEAN"
     }

@@ -84,6 +84,15 @@ Required fields:
 - flavor_notes: Array of tasting notes
 - grind_type: WHOLE_BEAN/ESPRESSO/FILTER/FRENCH_PRESS
 
+Optional specialty fields (when available):
+- farm: Farm name
+- altitude: Elevation in masl
+- process: Processing method (natural, washed, honey, etc.)
+- agtron_roast_level: Agtron number/measurement
+- suitable_brew_type: Recommended brewing methods (espresso, drip, pour-over, etc.)
+- bean_type: Coffee species (Arabica, Robusta, Liberica, Excelsa)
+- variety: Coffee variety/cultivar
+
 Skip navigation, headers, footers, and non-product content.
 Return empty array if no coffee products found.
 
@@ -147,10 +156,10 @@ Website content:
                 response_mime_type="application/json",
                 response_schema=genai.types.Schema(
                     type=genai.types.Type.ARRAY,
-                    description="A list of general coffee bean information objects",
+                    description="A list of coffee bean information objects, including both general and specialty details.",
                     items=genai.types.Schema(
                         type=genai.types.Type.OBJECT,
-                        description="Level 1: General bean information",
+                        description="Combined Bean Information: Level 1 (General) and Level 2 (Specialty)",
                         properties={
                             "name": genai.types.Schema(
                                 type=genai.types.Type.STRING,
@@ -161,7 +170,7 @@ Website content:
                                 description="Weight of the package (e.g., '12oz', '340g')",
                             ),
                             "price": genai.types.Schema(
-                                type=genai.types.Type.STRING,
+                                type=genai.types.Type.NUMBER,
                                 description="Price of the coffee",
                             ),
                             "producer": genai.types.Schema(
@@ -175,7 +184,7 @@ Website content:
                             "roast_level": genai.types.Schema(
                                 type=genai.types.Type.STRING,
                                 description="Roast level",
-                                enum=["LIGHT", "MEDIUM", "DARK", "MEDIUM_DARK"],
+                                enum=["LIGHT", "MEDIUM_LIGHT", "MEDIUM", "MEDIUM_DARK", "DARK", "EXTRA_DARK", "NO_PREFERENCE"],
                             ),
                             "flavor_notes": genai.types.Schema(
                                 type=genai.types.Type.ARRAY,
@@ -187,7 +196,40 @@ Website content:
                             "grind_type": genai.types.Schema(
                                 type=genai.types.Type.STRING,
                                 description="Grind type (whole/ground)",
-                                enum=["WHOLE_BEAN", "GROUND_COFFEE"],
+                                enum=["WHOLE", "EXTRA_COARSE", "COARSE", "MEDIUM_COARSE", "MEDIUM", "MEDIUM_FINE", "FINE", "EXTRA_FINE", "TURKISH"],
+                            ),
+                            "farm": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Farm name",
+                            ),
+                            "altitude": genai.types.Schema(
+                                type=genai.types.Type.INTEGER,
+                                description="Altitude in masl (meters above sea level)",
+                            ),
+                            "process": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Processing method"
+                            ),
+                            "agtron_roast_level": genai.types.Schema(
+                                type=genai.types.Type.INTEGER,
+                                description="Agtron roast level number",
+                            ),
+                            "suitable_brew_types": genai.types.Schema(
+                                type=genai.types.Type.ARRAY,
+                                description="Suitable brewing methods",
+                                items=genai.types.Schema(
+                                    type=genai.types.Type.STRING,
+                                    enum=["DRIP_FILTER", "ESPRESSO", "POUR_OVER", "FRENCH_PRESS", "COLD_BREW", "AEROPRESS", "MOKA_POT", "SIPHON", "OTHER"],
+                                ),
+                            ),
+                            "bean_type": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Type of coffee bean (e.g., Arabica, Robusta, Liberica, Excelsa)",
+                                enum=["ARABICA", "ROBUSTA", "LIBERICA", "EXCELSA"],
+                            ),
+                            "variety": genai.types.Schema(
+                                type=genai.types.Type.STRING,
+                                description="Specific coffee variety/cultivar (e.g., Bourbon, Typica, Geisha) within the bean type.",
                             ),
                         },
                     ),

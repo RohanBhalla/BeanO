@@ -1,0 +1,35 @@
+{
+  "source_file": "000_us.lacabra.com_products_la-pelota.html",
+  "processed_at": "2025-06-27T12:10:17.833516",
+  "coffee_beans": [
+    {
+      "name": "La Pelota",
+      "weight": "100g",
+      "price": 23.0,
+      "producer": "Maria Rovira Muñoz",
+      "region": "Huila",
+      "roast_level": "LIGHT",
+      "flavor_notes": [
+        "floral",
+        "citrus",
+        "tea-like",
+        "white florals"
+      ],
+      "grind_type": "WHOLE_BEAN",
+      "farm": "La Pelota",
+      "altitude": 1900,
+      "process": "Washed",
+      "suitable_brew_types": [
+        "DRIP",
+        "POUR_OVER",
+        "ESPRESSO",
+        "FRENCH_PRESS",
+        "AEROPRESS",
+        "COLD_BREW"
+      ],
+      "bean_type": "ARABICA",
+      "variety": "Geisha"
+    }
+  ],
+  "beans_found": 1
+}

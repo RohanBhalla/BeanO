@@ -1,6 +1,6 @@
 {
   "phase": "html_scraping",
-  "timestamp": "2025-06-26T16:31:08.106748",
+  "timestamp": "2025-06-27T11:30:03.018680",
   "links_file_used": "crawled_links/lacolombe_com.json",
   "status_filter_used": "keep",
   "total_links_in_file": 788,

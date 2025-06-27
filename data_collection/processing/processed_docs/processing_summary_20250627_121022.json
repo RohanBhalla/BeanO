@@ -1,0 +1,203 @@
+{
+  "input_directory": "/Users/akshat/Documents/WORK/Github/BeanO/data_collection/crawling/scraped_html/lacolombe_com",
+  "processed_at": "2025-06-27T12:10:22.869978",
+  "files_processed": 4,
+  "total_beans_found": 9,
+  "results": [
+    {
+      "source_file": "001_lacolombe.com_products_corsica.html",
+      "processed_at": "2025-06-27T12:10:08.293356",
+      "coffee_beans": [
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "12 oz",
+          "price": 16.0,
+          "producer": "La Colombe Coffee Roasters",
+          "region": "Brazil, Colombia, Honduras, and Mexico",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "suitable_brew_types": [
+            "DRIP",
+            "ESPRESSO",
+            "FRENCH_PRESS"
+          ]
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "12 oz",
+          "price": 16.0,
+          "producer": "La Colombe Coffee Roasters",
+          "region": "Brazil, Colombia, Honduras, and Mexico",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "suitable_brew_types": [
+            "DRIP"
+          ]
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "12 oz",
+          "price": 16.0,
+          "producer": "La Colombe Coffee Roasters",
+          "region": "Brazil, Colombia, Honduras, and Mexico",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "suitable_brew_types": [
+            "ESPRESSO"
+          ]
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "12 oz",
+          "price": 16.0,
+          "producer": "La Colombe Coffee Roasters",
+          "region": "Brazil, Colombia, Honduras, and Mexico",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "suitable_brew_types": [
+            "FRENCH_PRESS"
+          ]
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "5 lb",
+          "price": 88.0,
+          "producer": "La Colombe Coffee Roasters",
+          "region": "Brazil, Colombia, Honduras, and Mexico",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "suitable_brew_types": [
+            "DRIP"
+          ]
+        },
+        {
+          "name": "Corsica Dark Roast Coffee",
+          "weight": "5 lb",
+          "price": 88.0,
+          "producer": "La Colombe Coffee Roasters",
+          "region": "Brazil, Colombia, Honduras, and Mexico",
+          "roast_level": "DARK",
+          "flavor_notes": [
+            "Baker's Chocolate",
+            "Red Wine",
+            "Spices"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "suitable_brew_types": [
+            "ESPRESSO"
+          ]
+        }
+      ],
+      "beans_found": 6
+    },
+    {
+      "source_file": "000_us.lacabra.com_products_la-pelota.html",
+      "processed_at": "2025-06-27T12:10:17.833516",
+      "coffee_beans": [
+        {
+          "name": "La Pelota",
+          "weight": "100g",
+          "price": 23.0,
+          "producer": "Maria Rovira Muñoz",
+          "region": "Huila",
+          "roast_level": "LIGHT",
+          "flavor_notes": [
+            "floral",
+            "citrus",
+            "tea-like",
+            "white florals"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "farm": "La Pelota",
+          "altitude": 1900,
+          "process": "Washed",
+          "suitable_brew_types": [
+            "DRIP",
+            "POUR_OVER",
+            "ESPRESSO",
+            "FRENCH_PRESS",
+            "AEROPRESS",
+            "COLD_BREW"
+          ],
+          "bean_type": "ARABICA",
+          "variety": "Geisha"
+        }
+      ],
+      "beans_found": 1
+    },
+    {
+      "source_file": "000_lacolombe.com_products_strawberry-mocha-draft-latte.html",
+      "processed_at": "2025-06-27T12:10:18.828613",
+      "coffee_beans": [
+        {
+          "name": "Strawberry Mocha Draft Latte",
+          "weight": "9 oz",
+          "price": 34.0,
+          "producer": "La Colombe Coffee Roasters",
+          "region": "Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "strawberry",
+            "chocolate",
+            "mocha"
+          ],
+          "grind_type": "WHOLE_BEAN",
+          "bean_type": "ARABICA"
+        }
+      ],
+      "beans_found": 1
+    },
+    {
+      "source_file": "002_lacolombe.com_products_single-origin-pack.html",
+      "processed_at": "2025-06-27T12:10:22.868541",
+      "coffee_beans": [
+        {
+          "name": "Single Origin Pack",
+          "weight": "12 oz",
+          "price": 39.0,
+          "producer": "La Colombe",
+          "region": "Brazil, Colombia",
+          "roast_level": "MEDIUM",
+          "flavor_notes": [
+            "Chocolatey",
+            "Nutty",
+            "Sweet",
+            "Milk Chocolate",
+            "Cashew",
+            "Brown Sugar",
+            "Clementines",
+            "Cherry Cola",
+            "Chocolate"
+          ],
+          "grind_type": "WHOLE_BEAN"
+        }
+      ],
+      "beans_found": 1
+    }
+  ]
+}
